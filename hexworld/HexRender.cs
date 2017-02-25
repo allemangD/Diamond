@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO;
 using hexworld.Util;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 
 namespace hexworld
@@ -40,6 +41,9 @@ namespace hexworld
 
         private Matrix4 view;
         private Matrix4 proj;
+
+        private VBO tileVbo;
+        private VBO cubeVbo;
 
         private readonly Vertex[] cubeVerts =
         {
@@ -97,7 +101,7 @@ namespace hexworld
 
         private Tile[] tiles =
         {
-            // Cubes
+            // Grass
             new Tile(new Vector3(-2, -2, 0)),
             new Tile(new Vector3(-2, -1, 0)),
             new Tile(new Vector3(-2, +0, 0)),
@@ -114,7 +118,7 @@ namespace hexworld
             new Tile(new Vector3(+0, +2, 0)),
             new Tile(new Vector3(+1, -2, 0)),
             new Tile(new Vector3(+1, +2, 0)),
-            // Planes
+            // Stone
             new Tile(new Vector3(+0, +0, +1)),
             new Tile(new Vector3(+0, +1, +1)),
             new Tile(new Vector3(+0, -1, +1)),
@@ -122,10 +126,7 @@ namespace hexworld
             new Tile(new Vector3(-1, +0, +1)),
         };
 
-        private VBO tileVbo;
-        private VBO cubeVbo;
-
-        public HexRender(int width, int height) : base(width, height)
+        public HexRender(int width, int height) : base(width, height, new GraphicsMode(32, 32, 0, 0))
         {
             Width = width;
             Height = Height;
@@ -134,17 +135,20 @@ namespace hexworld
         }
 
         private Random rand = new Random();
+        private double t;
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
+            t += e.Time;
 
             view = Matrix4.LookAt(10 * Vector3.One, Vector3.Zero, Vector3.UnitZ);
-            proj = Matrix4.CreateOrthographic(Width / 100f, Height / 100f, 0, 20);
+            proj = Matrix4.CreateOrthographic(Width / 100f, Height / 100f, -100, 100);
 
             for (var i = 0; i < 16; i++)
             {
-                tiles[i].Position.Z += (float) ((rand.NextDouble() - .5) * e.Time);
+                var ti = tiles[i];
+                tiles[i].Position.Z = (float) (Math.Sin((t + ti.Position.X - ti.Position.Y / 1.5) / 1.5) * .25);
             }
 
 //            tileVbo.Data(tiles, BufferUsageHint.DynamicDraw);
@@ -218,8 +222,15 @@ namespace hexworld
             base.OnRenderFrame(e);
 
             GL.Viewport(ClientRectangle);
+
+            GL.ClearColor(0.2392157F,0.5607843F,0.9960784F, 1f);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
             GL.Enable(EnableCap.DepthTest);
+            GL.DepthFunc(DepthFunction.Lequal);
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+
 
             pgm.Use();
 

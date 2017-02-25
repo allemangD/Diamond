@@ -8,7 +8,15 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace hexworld.Util
 {
-    public class VBO : GLObject
+    public static class VBO
+    {
+        public static void Unbind()
+        {
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        }
+    }
+
+    public class VBO<T> : GLObject where T : struct
     {
         public VBO()
             : base((uint) GL.GenBuffer())
@@ -20,17 +28,49 @@ namespace hexworld.Util
             GL.BindBuffer(BufferTarget.ArrayBuffer, Id);
         }
 
-        public void Data<T>(T[] data, BufferUsageHint usage = BufferUsageHint.StaticDraw) where T : struct
+        public void Data(T[] data, BufferUsageHint usage = BufferUsageHint.StaticDraw)
         {
             Bind();
             var size = Marshal.SizeOf<T>();
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(size * data.Length), data, usage);
-            Unbind();
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr) (size * data.Length), data, usage);
+            VBO.Unbind();
         }
 
-        public static void Unbind()
+        // todo: this needs a better solution.
+        private static readonly int Stride;
+        private static readonly VertexPointerAttribute[] Attributes;
+
+        static VBO()
         {
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            var attribList = new List<VertexPointerAttribute>();
+            Stride = Marshal.SizeOf<T>();
+
+            foreach (var fieldInfo in typeof(T).GetFields())
+            {
+                var attrs = fieldInfo.GetCustomAttributes(typeof(VertexPointerAttribute), false);
+                if (attrs.Length == 0) continue;
+                var offset = (int) Marshal.OffsetOf<T>(fieldInfo.Name);
+                foreach (var attr in attrs)
+                {
+                    var vpa = (VertexPointerAttribute) attr;
+                    vpa.Offset = offset;
+                    attribList.Add(vpa);
+                }
+            }
+
+            Attributes = attribList.ToArray();
+        }
+
+        public void AttribPointers(Program pgm)
+        {
+            Bind();
+            foreach (var attr in Attributes)
+            {
+                if (!pgm.TryGetAttribute(attr.Name, out int loc)) continue;
+                GL.VertexAttribPointer(loc, attr.Size, attr.Type, attr.Normalized, Stride, attr.Offset);
+                GL.VertexAttribDivisor(loc, attr.Divisor);
+            }
+            VBO.Unbind();
         }
     }
 }

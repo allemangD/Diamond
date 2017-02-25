@@ -47,18 +47,40 @@ namespace hexworld.Util
             return true;
         }
 
+        public bool TryGetUniform(string name, out int id)
+        {
+            return uniforms.TryGetValue(name, out id);
+        }
+
         public int GetUniform(string name)
         {
-            if (!uniforms.TryGetValue(name, out int id))
+            if (!TryGetUniform(name, out int id))
                 throw new ShaderException($"Shader Program {Id} does not contain uniform '{name}'");
             return id;
         }
 
+        public bool TryGetAttribute(string name, out int id)
+        {
+            return attributes.TryGetValue(name, out id);
+        }
+
         public int GetAttribute(string name)
         {
-            if (!attributes.TryGetValue(name, out int id))
-                throw new ShaderException($"Shader Program {Id} does not contain attribute '{name}'");
+            if (!TryGetAttribute(name, out int id))
+                throw new ShaderException($"Shader Program {Id} does not contain id '{name}'");
             return id;
+        }
+
+        public void EnableAllAttribArrays()
+        {
+            foreach (var loc in attributes.Values)
+                GL.EnableVertexAttribArray(loc);
+        }
+
+        public void DisableAllAttribArrays()
+        {
+            foreach (var loc in attributes.Values)
+                GL.DisableVertexAttribArray(loc);
         }
 
         public void Use() => GL.UseProgram(Id);

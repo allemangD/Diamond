@@ -7,60 +7,123 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace hexworld
 {
+    public struct Vertex
+    {
+        public Vector3 Position;
+        public Vector2 UV;
+        public Vector3 Normal;
+
+        public Vertex(Vector3 position, Vector2 uv, Vector3 normal)
+        {
+            Position = position;
+            UV = uv;
+            Normal = normal;
+        }
+    }
+
+    public struct Tile
+    {
+        public Vector3 Position;
+
+        public Tile(Vector3 position)
+        {
+            Position = position;
+        }
+    }
+
     public class HexRender : GameWindow
     {
         private Program pgm;
-        private Texture tex1;
+        private Texture grass;
+        private Texture stone;
         private Texture tex2;
 
         private Matrix4 view;
         private Matrix4 proj;
 
-        private readonly float[] verts =
+        private readonly Vertex[] cubeVerts =
         {
-             // +X
-            +.5f, +.5f, -.5f, 1.0f, 0.5f,
-            +.5f, +.5f, +.5f, 1.0f, 0.0f,
-            +.5f, -.5f, +.5f, 0.5f, 0.0f,
-            +.5f, -.5f, +.5f, 0.5f, 0.0f,
-            +.5f, -.5f, -.5f, 0.5f, 0.5f,
-            +.5f, +.5f, -.5f, 1.0f, 0.5f,
+            // +X
+            new Vertex(new Vector3(+.5f, +.5f, -.5f), new Vector2(1.0f, 0.5f), new Vector3(+1, +0, +0)),
+            new Vertex(new Vector3(+.5f, +.5f, +.5f), new Vector2(1.0f, 0.0f), new Vector3(+1, +0, +0)),
+            new Vertex(new Vector3(+.5f, -.5f, +.5f), new Vector2(0.5f, 0.0f), new Vector3(+1, +0, +0)),
+            new Vertex(new Vector3(+.5f, -.5f, +.5f), new Vector2(0.5f, 0.0f), new Vector3(+1, +0, +0)),
+            new Vertex(new Vector3(+.5f, -.5f, -.5f), new Vector2(0.5f, 0.5f), new Vector3(+1, +0, +0)),
+            new Vertex(new Vector3(+.5f, +.5f, -.5f), new Vector2(1.0f, 0.5f), new Vector3(+1, +0, +0)),
             // -X
-            -.5f, +.5f, +.5f, 0.5f, 0.0f,
-            -.5f, +.5f, -.5f, 0.5f, 0.5f,
-            -.5f, -.5f, -.5f, 1.0f, 0.5f,
-            -.5f, -.5f, -.5f, 1.0f, 0.5f,
-            -.5f, -.5f, +.5f, 1.0f, 0.0f,
-            -.5f, +.5f, +.5f, 0.5f, 0.0f,
+            new Vertex(new Vector3(-.5f, +.5f, +.5f), new Vector2(0.5f, 0.0f), new Vector3(-1, +0, +0)),
+            new Vertex(new Vector3(-.5f, +.5f, -.5f), new Vector2(0.5f, 0.5f), new Vector3(-1, +0, +0)),
+            new Vertex(new Vector3(-.5f, -.5f, -.5f), new Vector2(1.0f, 0.5f), new Vector3(-1, +0, +0)),
+            new Vertex(new Vector3(-.5f, -.5f, -.5f), new Vector2(1.0f, 0.5f), new Vector3(-1, +0, +0)),
+            new Vertex(new Vector3(-.5f, -.5f, +.5f), new Vector2(1.0f, 0.0f), new Vector3(-1, +0, +0)),
+            new Vertex(new Vector3(-.5f, +.5f, +.5f), new Vector2(0.5f, 0.0f), new Vector3(-1, +0, +0)),
             // +Y
-            +.5f, +.5f, -.5f, 0.5f, 0.5f,
-            -.5f, +.5f, -.5f, 1.0f, 0.5f,
-            -.5f, +.5f, +.5f, 1.0f, 0.0f,
-            -.5f, +.5f, +.5f, 1.0f, 0.0f,
-            +.5f, +.5f, +.5f, 0.5f, 0.0f,
-            +.5f, +.5f, -.5f, 0.5f, 0.5f,
+            new Vertex(new Vector3(+.5f, +.5f, -.5f), new Vector2(0.5f, 0.5f), new Vector3(+0, +1, +0)),
+            new Vertex(new Vector3(-.5f, +.5f, -.5f), new Vector2(1.0f, 0.5f), new Vector3(+0, +1, +0)),
+            new Vertex(new Vector3(-.5f, +.5f, +.5f), new Vector2(1.0f, 0.0f), new Vector3(+0, +1, +0)),
+            new Vertex(new Vector3(-.5f, +.5f, +.5f), new Vector2(1.0f, 0.0f), new Vector3(+0, +1, +0)),
+            new Vertex(new Vector3(+.5f, +.5f, +.5f), new Vector2(0.5f, 0.0f), new Vector3(+0, +1, +0)),
+            new Vertex(new Vector3(+.5f, +.5f, -.5f), new Vector2(0.5f, 0.5f), new Vector3(+0, +1, +0)),
             // -Y
-            +.5f, -.5f, +.5f, 1.0f, 0.0f,
-            -.5f, -.5f, +.5f, 0.5f, 0.0f,
-            -.5f, -.5f, -.5f, 0.5f, 0.5f,
-            -.5f, -.5f, -.5f, 0.5f, 0.5f,
-            +.5f, -.5f, -.5f, 1.0f, 0.5f,
-            +.5f, -.5f, +.5f, 1.0f, 0.0f,
+            new Vertex(new Vector3(+.5f, -.5f, +.5f), new Vector2(1.0f, 0.0f), new Vector3(+0, -1, +0)),
+            new Vertex(new Vector3(-.5f, -.5f, +.5f), new Vector2(0.5f, 0.0f), new Vector3(+0, -1, +0)),
+            new Vertex(new Vector3(-.5f, -.5f, -.5f), new Vector2(0.5f, 0.5f), new Vector3(+0, -1, +0)),
+            new Vertex(new Vector3(-.5f, -.5f, -.5f), new Vector2(0.5f, 0.5f), new Vector3(+0, -1, +0)),
+            new Vertex(new Vector3(+.5f, -.5f, -.5f), new Vector2(1.0f, 0.5f), new Vector3(+0, -1, +0)),
+            new Vertex(new Vector3(+.5f, -.5f, +.5f), new Vector2(1.0f, 0.0f), new Vector3(+0, -1, +0)),
             // +Z
-            +.5f, +.5f, +.5f, 0.5f, 0.0f,
-            -.5f, +.5f, +.5f, 0.0f, 0.0f,
-            -.5f, -.5f, +.5f, 0.0f, 0.5f,
-            -.5f, -.5f, +.5f, 0.0f, 0.5f,
-            +.5f, -.5f, +.5f, 0.5f, 0.5f,
-            +.5f, +.5f, +.5f, 0.5f, 0.0f,
+            new Vertex(new Vector3(+.5f, +.5f, +.5f), new Vector2(0.5f, 0.0f), new Vector3(+0, +0, +1)),
+            new Vertex(new Vector3(-.5f, +.5f, +.5f), new Vector2(0.0f, 0.0f), new Vector3(+0, +0, +1)),
+            new Vertex(new Vector3(-.5f, -.5f, +.5f), new Vector2(0.0f, 0.5f), new Vector3(+0, +0, +1)),
+            new Vertex(new Vector3(-.5f, -.5f, +.5f), new Vector2(0.0f, 0.5f), new Vector3(+0, +0, +1)),
+            new Vertex(new Vector3(+.5f, -.5f, +.5f), new Vector2(0.5f, 0.5f), new Vector3(+0, +0, +1)),
+            new Vertex(new Vector3(+.5f, +.5f, +.5f), new Vector2(0.5f, 0.0f), new Vector3(+0, +0, +1)),
             // -Z
-            +.5f, +.5f, -.5f, 0.5f, 0.5f,
-            -.5f, +.5f, -.5f, 0.0f, 0.5f,
-            -.5f, -.5f, -.5f, 0.0f, 1.0f,
-            -.5f, -.5f, -.5f, 0.0f, 1.0f,
-            +.5f, -.5f, -.5f, 0.5f, 1.0f,
-            +.5f, +.5f, -.5f, 0.5f, 0.5f,
+            new Vertex(new Vector3(+.5f, +.5f, -.5f), new Vector2(0.5f, 0.5f), new Vector3(+0, +0, -1)),
+            new Vertex(new Vector3(-.5f, +.5f, -.5f), new Vector2(0.0f, 0.5f), new Vector3(+0, +0, -1)),
+            new Vertex(new Vector3(-.5f, -.5f, -.5f), new Vector2(0.0f, 1.0f), new Vector3(+0, +0, -1)),
+            new Vertex(new Vector3(-.5f, -.5f, -.5f), new Vector2(0.0f, 1.0f), new Vector3(+0, +0, -1)),
+            new Vertex(new Vector3(+.5f, -.5f, -.5f), new Vector2(0.5f, 1.0f), new Vector3(+0, +0, -1)),
+            new Vertex(new Vector3(+.5f, +.5f, -.5f), new Vector2(0.5f, 0.5f), new Vector3(+0, +0, -1)),
+
+            // Plane
+            new Vertex(new Vector3(+.5f, +.5f, 0.0f), new Vector2(0.5f, 0.0f), new Vector3(+0, +0, +1)),
+            new Vertex(new Vector3(-.5f, +.5f, 0.0f), new Vector2(0.0f, 0.0f), new Vector3(+0, +0, +1)),
+            new Vertex(new Vector3(-.5f, -.5f, 0.0f), new Vector2(0.0f, 0.5f), new Vector3(+0, +0, +1)),
+            new Vertex(new Vector3(-.5f, -.5f, 0.0f), new Vector2(0.0f, 0.5f), new Vector3(+0, +0, +1)),
+            new Vertex(new Vector3(+.5f, -.5f, 0.0f), new Vector2(0.5f, 0.5f), new Vector3(+0, +0, +1)),
+            new Vertex(new Vector3(+.5f, +.5f, 0.0f), new Vector2(0.5f, 0.0f), new Vector3(+0, +0, +1)),
         };
+
+        private Tile[] tiles =
+        {
+            // Cubes
+            new Tile(new Vector3(-2, -2, 0)),
+            new Tile(new Vector3(-2, -1, 0)),
+            new Tile(new Vector3(-2, +0, 0)),
+            new Tile(new Vector3(-2, +1, 0)),
+            new Tile(new Vector3(-2, +2, 0)),
+            new Tile(new Vector3(+2, -2, 0)),
+            new Tile(new Vector3(+2, -1, 0)),
+            new Tile(new Vector3(+2, +0, 0)),
+            new Tile(new Vector3(+2, +1, 0)),
+            new Tile(new Vector3(+2, +2, 0)),
+            new Tile(new Vector3(-1, -2, 0)),
+            new Tile(new Vector3(-1, +2, 0)),
+            new Tile(new Vector3(+0, -2, 0)),
+            new Tile(new Vector3(+0, +2, 0)),
+            new Tile(new Vector3(+1, -2, 0)),
+            new Tile(new Vector3(+1, +2, 0)),
+            // Planes
+            new Tile(new Vector3(+0, +0, +1)),
+            new Tile(new Vector3(+0, +1, +1)),
+            new Tile(new Vector3(+0, -1, +1)),
+            new Tile(new Vector3(+1, +0, +1)),
+            new Tile(new Vector3(-1, +0, +1)),
+        };
+
+        private VBO tileVbo;
+        private VBO cubeVbo;
 
         public HexRender(int width, int height) : base(width, height)
         {
@@ -70,20 +133,35 @@ namespace hexworld
             Y = (DisplayDevice.Default.Height - Height) / 2;
         }
 
+        private Random rand = new Random();
+
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
 
             view = Matrix4.LookAt(10 * Vector3.One, Vector3.Zero, Vector3.UnitZ);
             proj = Matrix4.CreateOrthographic(Width / 100f, Height / 100f, 0, 20);
+
+            for (var i = 0; i < 16; i++)
+            {
+                tiles[i].Position.Z += (float) ((rand.NextDouble() - .5) * e.Time);
+            }
+
+//            tileVbo.Data(tiles, BufferUsageHint.DynamicDraw);
+            tileVbo.Bind();
+            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr) (0), (IntPtr) (16 * 3 * sizeof(float)), tiles);
+            VBO.Unbind();
         }
 
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 
-            var vbo = new VBO();
-            vbo.Data(verts);
+            cubeVbo = new VBO();
+            cubeVbo.Data(cubeVerts, BufferUsageHint.StaticDraw);
+
+            tileVbo = new VBO();
+            tileVbo.Data(tiles, BufferUsageHint.DynamicDraw);
 
             var vs = new Shader(ShaderType.VertexShader)
             {
@@ -105,17 +183,34 @@ namespace hexworld
             pgm.Link();
             Console.Out.WriteLine(pgm.Log);
 
-            vbo.Bind();
-            GL.EnableVertexAttribArray(pgm.GetAttribute("pos"));
-            GL.VertexAttribPointer(pgm.GetAttribute("pos"), 3, VertexAttribPointerType.Float, false, 5 * sizeof(float),
+            var pos = pgm.GetAttribute("locpos");
+            var crd = pgm.GetAttribute("coord");
+            var nrm = pgm.GetAttribute("norm");
+            var tpos = pgm.GetAttribute("glbpos");
+
+            GL.EnableVertexAttribArray(pos);
+            GL.EnableVertexAttribArray(crd);
+            GL.EnableVertexAttribArray(nrm);
+            GL.EnableVertexAttribArray(tpos);
+
+            cubeVbo.Bind();
+
+            GL.VertexAttribPointer(pos, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float),
                 0);
-            GL.EnableVertexAttribArray(pgm.GetAttribute("coord"));
-            GL.VertexAttribPointer(pgm.GetAttribute("coord"), 2, VertexAttribPointerType.Float, false, 5 * sizeof(float),
+            GL.VertexAttribPointer(crd, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float),
                 3 * sizeof(float));
+            GL.VertexAttribPointer(nrm, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float),
+                5 * sizeof(float));
+
+            tileVbo.Bind();
+
+            GL.VertexAttribPointer(tpos, 3, VertexAttribPointerType.Float, false, 0, 0);
+            GL.VertexAttribDivisor(tpos, 1);
+
             VBO.Unbind();
 
-            tex1 = Texture.FromBitmap(new Bitmap("tex.png"));
-            tex2 = Texture.FromBitmap(new Bitmap("tex2.png"));
+            grass = Texture.FromBitmap(new Bitmap("grass.png"));
+            stone = Texture.FromBitmap(new Bitmap("stone.png"));
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
@@ -127,20 +222,22 @@ namespace hexworld
             GL.Enable(EnableCap.DepthTest);
 
             pgm.Use();
-            tex1.Bind(0);
-            tex2.Bind(1);
+
+            grass.Bind(0);
+            stone.Bind(1);
 
             GL.Uniform1(pgm.GetUniform("tex"), 0);
-            view = Matrix4.CreateTranslation(1,-1,0) * view;
             GL.UniformMatrix4(pgm.GetUniform("view"), false, ref view);
             GL.UniformMatrix4(pgm.GetUniform("proj"), false, ref proj);
 
-            GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
+            GL.DrawArraysInstancedBaseInstance(PrimitiveType.Triangles, 0, 36, 16, 0);
 
             GL.Uniform1(pgm.GetUniform("tex"), 1);
-            view = Matrix4.CreateTranslation(-2,2,0) * view;
             GL.UniformMatrix4(pgm.GetUniform("view"), false, ref view);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
+            GL.UniformMatrix4(pgm.GetUniform("proj"), false, ref proj);
+
+//            GL.DrawArraysInstancedBaseInstance(PrimitiveType.Triangles, 36, 6, 5, 16);
+            GL.DrawArraysInstancedBaseInstance(PrimitiveType.Triangles, 0, 36, 5, 16);
 
             SwapBuffers();
         }

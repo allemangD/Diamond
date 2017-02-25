@@ -11,10 +11,7 @@ namespace hexworld
     {
         public static void Main(string[] args)
         {
-            using (var gw = new HexWindow(1280, 720))
-            {
-                gw.Run();
-            }
+            using (var gw = new HexRender(1280, 720)) gw.Run();
         }
     }
 }

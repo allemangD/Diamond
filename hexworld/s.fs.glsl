@@ -1,10 +1,10 @@
 ﻿#version 440
 
-in vec2 vTexCoord;
+in vec2 vcoord;
 
 uniform sampler2D tex;
 
 void main ()
 {
-	gl_FragColor = texture(tex, vTexCoord);
+	gl_FragColor = texture(tex, vcoord);
 }

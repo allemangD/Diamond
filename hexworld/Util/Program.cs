@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL4;
 
 namespace hexworld.Util
@@ -53,7 +51,14 @@ namespace hexworld.Util
         {
             if (!uniforms.TryGetValue(name, out int id))
                 throw new ShaderException($"Shader Program {Id} does not contain uniform '{name}'");
-            else return id;
+            return id;
+        }
+
+        public int GetAttribute(string name)
+        {
+            if (!attributes.TryGetValue(name, out int id))
+                throw new ShaderException($"Shader Program {Id} does not contain attribute '{name}'");
+            return id;
         }
 
         public void Use() => GL.UseProgram(Id);

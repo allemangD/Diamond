@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL4;
+using System.IO;
 
 namespace hexworld.Util
 {
@@ -23,6 +24,15 @@ namespace hexworld.Util
 
         public string Log => GL.GetShaderInfoLog((int) Id);
 
+        public bool Compiled
+        {
+            get
+            {
+                GL.GetShader(Id, ShaderParameter.CompileStatus, out int success);
+                return success != 0;
+            }
+        }
+
         public Shader(ShaderType type)
             : base((uint) GL.CreateShader(type))
         {
@@ -34,6 +44,19 @@ namespace hexworld.Util
             GL.CompileShader(Id);
             GL.GetShader(Id, ShaderParameter.CompileStatus, out int success);
             return success != 0;
+        }
+
+        public static Shader FromFile(string path, ShaderType type)
+        {
+            return FromFile(path, type, out bool success);
+        }
+
+        public static Shader FromFile(string path, ShaderType type, out bool success)
+        {
+            var s = new Shader(type);
+            s.Source = File.ReadAllText(path);
+            success = s.Compile();
+            return s;
         }
     }
 }

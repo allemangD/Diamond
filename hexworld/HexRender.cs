@@ -16,9 +16,11 @@ namespace hexworld
     public partial class HexRender : GameWindow
     {
         private Program pgm;
+
         // todo: generate texture atlas
         // or at least embed sub-uvs and materials into json
         private Texture grass;
+
         private Texture stone;
 
         private Matrix4 view;
@@ -67,25 +69,32 @@ namespace hexworld
             tileVbo = new VBO<Tile>();
             tileVbo.Data(tiles, BufferUsageHint.DynamicDraw);
 
-            var vs = new Shader(ShaderType.VertexShader)
-            {
-                Source = File.ReadAllText("s.vs.glsl")
-            };
-            vs.Compile();
-            Console.Out.WriteLine(vs.Log);
+            var vs = Shader.FromFile("s.vs.glsl", ShaderType.VertexShader);
+            var fs = Shader.FromFile("s.fs.glsl", ShaderType.FragmentShader);
+            pgm = Program.FromShaders(vs, fs);
 
-            var fs = new Shader(ShaderType.FragmentShader)
+            if (!vs.Compiled | !fs.Compiled)
             {
-                Source = File.ReadAllText("s.fs.glsl")
-            };
-            fs.Compile();
-            Console.Out.WriteLine(fs.Log);
+                Console.Out.WriteLine("Failed to compile shaders:");
+                if (!vs.Compiled)
+                    Console.Out.WriteLine("Vertex Shader:\n" + vs.Log.Trim());
+                if (!fs.Compiled)
+                    Console.Out.WriteLine("Fragment Shader:\n" + fs.Log.Trim());
+                Console.Out.WriteLine("Press any key to exit.");
+                Console.ReadKey();
+                Exit();
+                return;
+            }
 
-            pgm = new Program();
-            pgm.Attach(vs);
-            pgm.Attach(fs);
-            pgm.Link();
-            Console.Out.WriteLine(pgm.Log);
+            if (!pgm.LinkStatus)
+            {
+                Console.Out.WriteLine("Failed to link program:");
+                Console.Out.WriteLine(pgm.Log.Trim());
+                Console.Out.WriteLine("Press any key to exit.");
+                Console.ReadKey();
+                Exit();
+                return;
+            }
 
             cubeVbo.AttribPointers(pgm);
             tileVbo.AttribPointers(pgm);

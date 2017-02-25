@@ -31,7 +31,7 @@ namespace hexworld.Util
         public void Data(T[] data, BufferUsageHint usage = BufferUsageHint.StaticDraw)
         {
             Bind();
-            var size = Marshal.SizeOf<T>();
+            var size = Marshal.SizeOf(typeof(T));
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr) (size * data.Length), data, usage);
             VBO.Unbind();
         }
@@ -43,13 +43,14 @@ namespace hexworld.Util
         static VBO()
         {
             var attribList = new List<VertexPointerAttribute>();
-            Stride = Marshal.SizeOf<T>();
+            Stride = Marshal.SizeOf(typeof(T));
 
             foreach (var fieldInfo in typeof(T).GetFields())
             {
                 var attrs = fieldInfo.GetCustomAttributes(typeof(VertexPointerAttribute), false);
                 if (attrs.Length == 0) continue;
-                var offset = (int) Marshal.OffsetOf<T>(fieldInfo.Name);
+
+                var offset = (int) Marshal.OffsetOf(typeof(T), fieldInfo.Name);
                 foreach (var attr in attrs)
                 {
                     var vpa = (VertexPointerAttribute) attr;

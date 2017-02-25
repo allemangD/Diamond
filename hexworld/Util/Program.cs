@@ -19,6 +19,15 @@ namespace hexworld.Util
 
         public void Attach(Shader shader) => GL.AttachShader(Id, shader.Id);
 
+        public bool LinkStatus
+        {
+            get
+            {
+                GL.GetProgram(Id, GetProgramParameterName.LinkStatus, out int success);
+                return success != 0;
+            }
+        }
+
         public bool Link()
         {
             uniforms.Clear();
@@ -86,5 +95,16 @@ namespace hexworld.Util
         public void Use() => GL.UseProgram(Id);
 
         public static void UseDefault() => GL.UseProgram(0);
+
+        public static Program FromShaders(params Shader[] shaders)
+        {
+            var p = new Program();
+            foreach (var shader in shaders)
+            {
+                p.Attach(shader);
+            }
+            p.Link();
+            return p;
+        }
     }
 }

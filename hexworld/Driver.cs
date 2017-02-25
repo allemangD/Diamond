@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace hexworld
 {
-    public class Program
+    public class Driver
     {
         public static void Main(string[] args)
         {

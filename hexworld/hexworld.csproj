@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -51,8 +52,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Game.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Driver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Util\Extensions.cs" />
+    <Compile Include="Util\GLObject.cs" />
+    <Compile Include="Util\Program.cs" />
+    <Compile Include="Util\Shader.cs" />
+    <Compile Include="Util\ShaderException.cs" />
+    <Compile Include="Util\Texture.cs" />
+    <Compile Include="Util\VBO.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

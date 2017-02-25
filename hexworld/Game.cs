@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using hexworld.Util;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using PixelFormat = OpenTK.Graphics.OpenGL4.PixelFormat;
 
@@ -37,23 +38,35 @@ namespace hexworld
         private readonly Vert[] _verts =
         {
             // +X
-            new Vert(+.5f, +.5f, -.5f, 1.0f, 0.5f), new Vert(+.5f, +.5f, +.5f, 1.0f, 0.0f), new Vert(+.5f, -.5f, +.5f, 0.5f, 0.0f),
-            new Vert(+.5f, -.5f, +.5f, 0.5f, 0.0f), new Vert(+.5f, -.5f, -.5f, 0.5f, 0.5f), new Vert(+.5f, +.5f, -.5f, 1.0f, 0.5f),
+            new Vert(+.5f, +.5f, -.5f, 1.0f, 0.5f), new Vert(+.5f, +.5f, +.5f, 1.0f, 0.0f),
+            new Vert(+.5f, -.5f, +.5f, 0.5f, 0.0f),
+            new Vert(+.5f, -.5f, +.5f, 0.5f, 0.0f), new Vert(+.5f, -.5f, -.5f, 0.5f, 0.5f),
+            new Vert(+.5f, +.5f, -.5f, 1.0f, 0.5f),
             // -X
-            new Vert(-.5f, +.5f, +.5f, 0.5f, 0.0f), new Vert(-.5f, +.5f, -.5f, 0.5f, 0.5f), new Vert(-.5f, -.5f, -.5f, 1.0f, 0.5f),
-            new Vert(-.5f, -.5f, -.5f, 1.0f, 0.5f), new Vert(-.5f, -.5f, +.5f, 1.0f, 0.0f), new Vert(-.5f, +.5f, +.5f, 0.5f, 0.0f),
+            new Vert(-.5f, +.5f, +.5f, 0.5f, 0.0f), new Vert(-.5f, +.5f, -.5f, 0.5f, 0.5f),
+            new Vert(-.5f, -.5f, -.5f, 1.0f, 0.5f),
+            new Vert(-.5f, -.5f, -.5f, 1.0f, 0.5f), new Vert(-.5f, -.5f, +.5f, 1.0f, 0.0f),
+            new Vert(-.5f, +.5f, +.5f, 0.5f, 0.0f),
             // +Y
-            new Vert(+.5f, +.5f, -.5f, 0.5f, 0.5f), new Vert(-.5f, +.5f, -.5f, 1.0f, 0.5f), new Vert(-.5f, +.5f, +.5f, 1.0f, 0.0f),
-            new Vert(-.5f, +.5f, +.5f, 1.0f, 0.0f), new Vert(+.5f, +.5f, +.5f, 0.5f, 0.0f), new Vert(+.5f, +.5f, -.5f, 0.5f, 0.5f),
+            new Vert(+.5f, +.5f, -.5f, 0.5f, 0.5f), new Vert(-.5f, +.5f, -.5f, 1.0f, 0.5f),
+            new Vert(-.5f, +.5f, +.5f, 1.0f, 0.0f),
+            new Vert(-.5f, +.5f, +.5f, 1.0f, 0.0f), new Vert(+.5f, +.5f, +.5f, 0.5f, 0.0f),
+            new Vert(+.5f, +.5f, -.5f, 0.5f, 0.5f),
             // -Y
-            new Vert(+.5f, -.5f, +.5f, 1.0f, 0.0f), new Vert(-.5f, -.5f, +.5f, 0.5f, 0.0f), new Vert(-.5f, -.5f, -.5f, 0.5f, 0.5f),
-            new Vert(-.5f, -.5f, -.5f, 0.5f, 0.5f), new Vert(+.5f, -.5f, -.5f, 1.0f, 0.5f), new Vert(+.5f, -.5f, +.5f, 1.0f, 0.0f),
+            new Vert(+.5f, -.5f, +.5f, 1.0f, 0.0f), new Vert(-.5f, -.5f, +.5f, 0.5f, 0.0f),
+            new Vert(-.5f, -.5f, -.5f, 0.5f, 0.5f),
+            new Vert(-.5f, -.5f, -.5f, 0.5f, 0.5f), new Vert(+.5f, -.5f, -.5f, 1.0f, 0.5f),
+            new Vert(+.5f, -.5f, +.5f, 1.0f, 0.0f),
             // +Z
-            new Vert(+.5f, +.5f, +.5f, 0.5f, 0.0f), new Vert(-.5f, +.5f, +.5f, 0.0f, 0.0f), new Vert(-.5f, -.5f, +.5f, 0.0f, 0.5f),
-            new Vert(-.5f, -.5f, +.5f, 0.0f, 0.5f), new Vert(+.5f, -.5f, +.5f, 0.5f, 0.5f), new Vert(+.5f, +.5f, +.5f, 0.5f, 0.0f),
+            new Vert(+.5f, +.5f, +.5f, 0.5f, 0.0f), new Vert(-.5f, +.5f, +.5f, 0.0f, 0.0f),
+            new Vert(-.5f, -.5f, +.5f, 0.0f, 0.5f),
+            new Vert(-.5f, -.5f, +.5f, 0.0f, 0.5f), new Vert(+.5f, -.5f, +.5f, 0.5f, 0.5f),
+            new Vert(+.5f, +.5f, +.5f, 0.5f, 0.0f),
             // -Z
-            new Vert(+.5f, +.5f, -.5f, 0.5f, 0.5f), new Vert(-.5f, +.5f, -.5f, 0.0f, 0.5f), new Vert(-.5f, -.5f, -.5f, 0.0f, 1.0f),
-            new Vert(-.5f, -.5f, -.5f, 0.0f, 1.0f), new Vert(+.5f, -.5f, -.5f, 0.5f, 1.0f), new Vert(+.5f, +.5f, -.5f, 0.5f, 0.5f),
+            new Vert(+.5f, +.5f, -.5f, 0.5f, 0.5f), new Vert(-.5f, +.5f, -.5f, 0.0f, 0.5f),
+            new Vert(-.5f, -.5f, -.5f, 0.0f, 1.0f),
+            new Vert(-.5f, -.5f, -.5f, 0.0f, 1.0f), new Vert(+.5f, -.5f, -.5f, 0.5f, 1.0f),
+            new Vert(+.5f, +.5f, -.5f, 0.5f, 0.5f),
         };
 
         private Matrix4 _view = Matrix4.Identity;
@@ -65,8 +78,14 @@ namespace hexworld
         private Texture _tex2;
 
         public HexWindow(int width, int height)
-            : base(width, height)
+            : base(
+                width, height, GraphicsMode.Default, "Hexworld", GameWindowFlags.Default, DisplayDevice.Default, 4, 4,
+                GraphicsContextFlags.Debug)
         {
+            GL.GetInteger(GetPName.MajorVersion, out int major);
+            GL.GetInteger(GetPName.MinorVersion, out int minor);
+            Console.Out.WriteLine($"GL {major}.{minor}");
+
             Width = width;
             Height = height;
             X = (DisplayDevice.Default.Width - Width) / 2;

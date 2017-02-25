@@ -11,7 +11,7 @@ namespace hexworld
     {
         public static void Main(string[] args)
         {
-            using (var gw = new HexWindow(1920, 1080))
+            using (var gw = new HexWindow(1280, 720))
             {
                 gw.Run();
             }

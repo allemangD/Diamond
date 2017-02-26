@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL4;
-using System.IO;
 
-namespace hexworld.Util
+namespace Diamond.Shaders
 {
     public class Shader : GLObject
     {

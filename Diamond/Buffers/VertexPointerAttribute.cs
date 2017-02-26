@@ -1,7 +1,7 @@
 using System;
 using OpenTK.Graphics.OpenGL4;
 
-namespace hexworld.Util
+namespace Diamond.Buffers
 {
     [AttributeUsage(AttributeTargets.Field, Inherited = false, AllowMultiple = true)]
     public sealed class VertexPointerAttribute : Attribute

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+using Diamond.Shaders;
 using OpenTK.Graphics.OpenGL4;
 
-namespace hexworld.Util
+namespace Diamond.Buffers
 {
     public static class VBO
     {

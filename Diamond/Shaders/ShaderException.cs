@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace hexworld.Util
+namespace Diamond.Shaders
 {
     [Serializable]
     public class ShaderException : Exception

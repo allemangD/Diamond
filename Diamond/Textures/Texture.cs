@@ -5,6 +5,9 @@ using PixelFormat = OpenTK.Graphics.OpenGL4.PixelFormat;
 
 namespace Diamond.Textures
 {
+    /// <summary>
+    /// Wrapper class for gl Textures.
+    /// </summary>
     public class Texture : GLObject
     {
         public TextureTarget Target;

@@ -1,23 +1,30 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Security.Policy;
+using System.Text;
+using System.Threading.Tasks;
 using Diamond;
 using Diamond.Buffers;
 using Diamond.Shaders;
 using Diamond.Textures;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 
 namespace hexworld
 {
-    public partial class HexRender : GameWindow
+    public class HexRender : GameWindow
     {
+        private readonly VertexData[] _cubeVerts =
+            JsonConvert.DeserializeObject<VertexData[]>(File.ReadAllText("cube.json"));
+
+        private readonly TileData[] _tilesData =
+            JsonConvert.DeserializeObject<TileData[]>(File.ReadAllText("tiles.json"));
+
         private Program _pgm;
 
         private Texture _grass;
@@ -26,8 +33,10 @@ namespace hexworld
         private Matrix4 _view;
         private Matrix4 _proj;
 
-        private VBO<Tile> _tileVbo;
-        private VBO<Vertex> _cubeVbo;
+        private VBO<TileData> _tileVbo;
+        private VBO<VertexData> _cubeVbo;
+
+        private double _time;
 
         public HexRender(int width, int height)
             : base(width, height, new GraphicsMode(32, 24, 0, 0))
@@ -38,24 +47,24 @@ namespace hexworld
             Y = (DisplayDevice.Default.Height - Height) / 2;
         }
 
-        private double _t;
-
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
-            _t += e.Time;
+
+            _time += e.Time;
 
             _view = Matrix4.LookAt(10 * Vector3.One, Vector3.Zero, Vector3.UnitZ);
             _proj = Matrix4.CreateOrthographic(Width / 100f, Height / 100f, -100, 100);
 
+            // wavy blocks around perimeter
             for (var i = 0; i < 16; i++)
             {
-                var ti = tiles[i];
-                tiles[i].Position.Z = (float) (Math.Sin((_t + ti.Position.X - ti.Position.Y / 1.5) / 1.5) * .25);
+                var ti = _tilesData[i];
+                _tilesData[i].Position.Z = (float) (Math.Sin((_time + ti.Position.X - ti.Position.Y / 1.5) / 1.5) * .25);
             }
 
             _tileVbo.Bind();
-            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr) (0), (IntPtr) (16 * 3 * sizeof(float)), tiles);
+            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr) (0), (IntPtr) (16 * 3 * sizeof(float)), _tilesData);
             VBO.Unbind();
         }
 
@@ -63,42 +72,34 @@ namespace hexworld
         {
             base.OnLoad(e);
 
-            _cubeVbo = new VBO<Vertex>();
-            _cubeVbo.Data(cubeVerts, BufferUsageHint.StaticDraw);
-
-            _tileVbo = new VBO<Tile>();
-            _tileVbo.Data(tiles, BufferUsageHint.DynamicDraw);
-
             using (var vs = Shader.FromFile("s.vs.glsl", ShaderType.VertexShader))
             using (var fs = Shader.FromFile("s.fs.glsl", ShaderType.FragmentShader))
             {
-                _pgm = Program.FromShaders(vs, fs);
-
                 if (!vs.Compiled | !fs.Compiled)
                 {
-                    Console.Out.WriteLine("Failed to compile shaders:");
-                    if (!vs.Compiled)
-                        Console.Out.WriteLine("Vertex Shader:\n" + vs.Log.Trim());
-                    if (!fs.Compiled)
-                        Console.Out.WriteLine("Fragment Shader:\n" + fs.Log.Trim());
-                    Console.Out.WriteLine("Press any key to exit.");
-                    Console.ReadKey();
+                    Debug.WriteLine("Failed to compile shaders:");
+                    Debug.WriteLineIf(!vs.Compiled, $"Vertex Log:\n{vs.Log}");
+                    Debug.WriteLineIf(!fs.Compiled, $"Fragment Log:\n{fs.Log}");
+                    Exit();
+                    return;
+                }
+
+                _pgm = Program.FromShaders(vs, fs);
+
+                if (!_pgm.Link())
+                {
+                    Debug.WriteLine($"Failed to link program:\n{_pgm.Log}");
                     Exit();
                     return;
                 }
             }
 
-            if (!_pgm.LinkStatus)
-            {
-                Console.Out.WriteLine("Failed to link program:");
-                Console.Out.WriteLine(_pgm.Log.Trim());
-                Console.Out.WriteLine("Press any key to exit.");
-                Console.ReadKey();
-                Exit();
-                return;
-            }
-
+            _cubeVbo = new VBO<VertexData>();
+            _cubeVbo.Data(_cubeVerts, BufferUsageHint.StaticDraw);
             _cubeVbo.AttribPointers(_pgm);
+
+            _tileVbo = new VBO<TileData>();
+            _tileVbo.Data(_tilesData, BufferUsageHint.DynamicDraw);
             _tileVbo.AttribPointers(_pgm);
 
             _grass = Texture.FromBitmap(new Bitmap("grass.png"));
@@ -111,11 +112,11 @@ namespace hexworld
 
             _pgm.Dispose();
 
-            _grass.Dispose();
-            _stone.Dispose();
-
             _tileVbo.Dispose();
             _cubeVbo.Dispose();
+
+            _grass.Dispose();
+            _stone.Dispose();
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)

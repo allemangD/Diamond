@@ -9,7 +9,7 @@ namespace Diamond.Shaders
         private Dictionary<string, int> uniforms = new Dictionary<string, int>();
         private Dictionary<string, int> attributes = new Dictionary<string, int>();
 
-        public string Log => GL.GetProgramInfoLog((int) Id);
+        public string Log => GL.GetProgramInfoLog((int) Id).Trim();
 
         public Program()
             : base((uint) GL.CreateProgram())
@@ -23,7 +23,7 @@ namespace Diamond.Shaders
 
         public void Attach(Shader shader) => GL.AttachShader(Id, shader.Id);
 
-        public bool LinkStatus
+        public bool Linked
         {
             get
             {

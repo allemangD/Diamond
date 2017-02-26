@@ -3,6 +3,9 @@ using System.Runtime.Serialization;
 
 namespace Diamond.Shaders
 {
+    /// <summary>
+    /// Exception relating to <code>Shader</code> and <code>Program</code> operations.
+    /// </summary>
     [Serializable]
     public class ShaderException : Exception
     {

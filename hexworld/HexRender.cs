@@ -17,10 +17,7 @@ namespace hexworld
     {
         private Program _pgm;
 
-        // todo: generate texture atlas
-        // or at least embed sub-uvs and materials into json
         private Texture _grass;
-
         private Texture _stone;
 
         private Matrix4 _view;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -37,6 +38,11 @@ namespace hexworld.Util
             : base((uint) GL.CreateShader(type))
         {
             Type = type;
+        }
+
+        protected override void Delete()
+        {
+            GL.DeleteShader(Id);
         }
 
         public bool Compile()

@@ -23,6 +23,11 @@ namespace hexworld.Util
         {
         }
 
+        protected override void Delete()
+        {
+            GL.DeleteBuffer(Id);
+        }
+
         public void Bind()
         {
             GL.BindBuffer(BufferTarget.ArrayBuffer, Id);

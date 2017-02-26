@@ -22,6 +22,11 @@ namespace hexworld.Util
             Target = target;
         }
 
+        protected override void Delete()
+        {
+            GL.DeleteTexture(Id);
+        }
+
         public void Bind()
         {
             GL.BindTexture(Target, Id);

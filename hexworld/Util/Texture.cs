@@ -10,8 +10,6 @@ using PixelFormat = OpenTK.Graphics.OpenGL4.PixelFormat;
 
 namespace hexworld.Util
 {
-    // todo: this structure doesn't fit GL at all. need to fix it.
-    // need to reconcile ActiveTexture and BindTexture
     public class Texture : GLObject
     {
         public TextureTarget Target;

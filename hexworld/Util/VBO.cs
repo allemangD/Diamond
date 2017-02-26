@@ -36,7 +36,6 @@ namespace hexworld.Util
             VBO.Unbind();
         }
 
-        // todo: this needs a better solution.
         private static readonly int Stride;
         private static readonly VertexPointerAttribute[] Attributes;
 

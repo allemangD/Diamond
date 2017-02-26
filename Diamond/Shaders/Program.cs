@@ -1,6 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
+using Diamond.Buffers;
 using OpenTK.Graphics.OpenGL4;
+using Buffer = Diamond.Buffers.Buffer;
 
 namespace Diamond.Shaders
 {
@@ -82,6 +86,41 @@ namespace Diamond.Shaders
             if (!TryGetAttribute(name, out int id))
                 throw new ShaderException($"Shader Program {Id} does not contain id '{name}'");
             return id;
+        }
+
+        public void SetAttribPointers(Buffer buff, Type vertexType)
+        {
+            if (vertexType.GetCustomAttributes(typeof(VertexDataAttribute), false).Length == 0)
+            {
+                throw new ShaderException($"Cannot attach buffer {buff} to program {this}" +
+                                          $" with vertex {vertexType} because it has no" +
+                                          $" VertexData attribute.");
+            }
+
+            var attribList = new List<VertexPointerAttribute>();
+            var Stride = Marshal.SizeOf(vertexType);
+
+            foreach (var fieldInfo in vertexType.GetFields())
+            {
+                var attrs = fieldInfo.GetCustomAttributes(typeof(VertexPointerAttribute), false);
+                if (attrs.Length == 0) continue;
+
+                var offset = (int) Marshal.OffsetOf(vertexType, fieldInfo.Name);
+                foreach (var attr in attrs)
+                {
+                    var vpa = (VertexPointerAttribute) attr;
+                    vpa.Offset = offset;
+                    attribList.Add(vpa);
+                }
+            }
+
+            buff.Bind();
+            foreach (var attr in attribList)
+            {
+                if (!TryGetAttribute(attr.Name, out int loc)) continue;
+                GL.VertexAttribPointer(loc, attr.Size, attr.Type, attr.Normalized, Stride, attr.Offset);
+                GL.VertexAttribDivisor(loc, attr.Divisor);
+            }
         }
 
         public void EnableAllAttribArrays()

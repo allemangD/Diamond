@@ -14,17 +14,12 @@ using Newtonsoft.Json;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+using Buffer = Diamond.Buffers.Buffer;
 
 namespace hexworld
 {
     public class HexRender : GameWindow
     {
-        private readonly VertexData[] _cubeVerts =
-            JsonConvert.DeserializeObject<VertexData[]>(File.ReadAllText("cube.json"));
-
-        private readonly TileData[] _tilesData =
-            JsonConvert.DeserializeObject<TileData[]>(File.ReadAllText("tiles.json"));
-
         private Program _pgm;
 
         private Texture _grass;
@@ -33,8 +28,17 @@ namespace hexworld
         private Matrix4 _view;
         private Matrix4 _proj;
 
-        private VBO<TileData> _tileVbo;
-        private VBO<VertexData> _cubeVbo;
+        private SubArray<Tile> _grassTiles;
+        private SubArray<Tile> _stoneTiles;
+
+        private SubArray<Vertex> _cubeVertices;
+        private SubArray<Vertex> _panelVertices;
+
+        private Tile[] _allTiles;
+        private Vertex[] _allVertices;
+
+        private Buffer _tileBuffer;
+        private Buffer _vertexBuffer;
 
         private double _time;
 
@@ -56,16 +60,18 @@ namespace hexworld
             _view = Matrix4.LookAt(10 * Vector3.One, Vector3.Zero, Vector3.UnitZ);
             _proj = Matrix4.CreateOrthographic(Width / 100f, Height / 100f, -100, 100);
 
-            // wavy blocks around perimeter
-            for (var i = 0; i < 16; i++)
+            for (var i = 0; i < _grassTiles.Length; i++)
             {
-                var ti = _tilesData[i];
-                _tilesData[i].Position.Z = (float) (Math.Sin((_time + ti.Position.X - ti.Position.Y / 1.5) / 1.5) * .25);
+                var ti = _grassTiles[i];
+                ti.Position.Z = (float) (Math.Sin((_time + ti.Position.X - ti.Position.Y / 1.5) / 1.5) * .25);
+                _grassTiles[i] = ti;
             }
 
-            _tileVbo.Bind();
-            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr) (0), (IntPtr) (16 * 3 * sizeof(float)), _tilesData);
-            VBO.Unbind();
+            _tileBuffer.SubData(_grassTiles);
+
+            _tileBuffer.Bind();
+            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr) (5 * 3 * sizeof(float)),
+                (IntPtr) (16 * 3 * sizeof(float)), _grassTiles.ToArray());
         }
 
         protected override void OnLoad(EventArgs e)
@@ -94,13 +100,27 @@ namespace hexworld
                 }
             }
 
-            _cubeVbo = new VBO<VertexData>();
-            _cubeVbo.Data(_cubeVerts, BufferUsageHint.StaticDraw);
-            _cubeVbo.AttribPointers(_pgm);
+            _cubeVertices = new SubArray<Vertex>(
+                JsonConvert.DeserializeObject<Vertex[]>(File.ReadAllText("data_vert_cubes.json")));
+            _panelVertices = new SubArray<Vertex>(
+                JsonConvert.DeserializeObject<Vertex[]>(File.ReadAllText("data_vert_panels.json")));
 
-            _tileVbo = new VBO<TileData>();
-            _tileVbo.Data(_tilesData, BufferUsageHint.DynamicDraw);
-            _tileVbo.AttribPointers(_pgm);
+            _grassTiles = new SubArray<Tile>(
+                JsonConvert.DeserializeObject<Tile[]>(File.ReadAllText("data_tile_grass.json")));
+            _stoneTiles = new SubArray<Tile>(
+                JsonConvert.DeserializeObject<Tile[]>(File.ReadAllText("data_tile_stone.json")));
+
+            _allTiles = SubArray<Tile>.Join(_stoneTiles, _grassTiles);
+            _allVertices = SubArray<Vertex>.Join(_panelVertices, _cubeVertices);
+
+            _tileBuffer = new Buffer(BufferTarget.ArrayBuffer, BufferUsageHint.DynamicDraw);
+            _tileBuffer.Data(_allTiles);
+
+            _vertexBuffer = new Buffer(BufferTarget.ArrayBuffer, BufferUsageHint.StaticDraw);
+            _vertexBuffer.Data(_allVertices);
+
+            _pgm.SetAttribPointers(_tileBuffer, typeof(Tile));
+            _pgm.SetAttribPointers(_vertexBuffer, typeof(Vertex));
 
             _grass = Texture.FromBitmap(new Bitmap("grass.png"));
             _stone = Texture.FromBitmap(new Bitmap("stone.png"));
@@ -112,8 +132,8 @@ namespace hexworld
 
             _pgm.Dispose();
 
-            _tileVbo.Dispose();
-            _cubeVbo.Dispose();
+            _tileBuffer.Dispose();
+            _vertexBuffer.Dispose();
 
             _grass.Dispose();
             _stone.Dispose();
@@ -145,13 +165,17 @@ namespace hexworld
             GL.UniformMatrix4(_pgm.GetUniform("view"), false, ref _view);
             GL.UniformMatrix4(_pgm.GetUniform("proj"), false, ref _proj);
 
-            GL.DrawArraysInstancedBaseInstance(PrimitiveType.Triangles, 0, 36, 16, 0);
+            GL.DrawArraysInstancedBaseInstance(PrimitiveType.Triangles,
+                _cubeVertices.Offset, _cubeVertices.Length,
+                _grassTiles.Length, _grassTiles.Offset);
 
             GL.Uniform1(_pgm.GetUniform("tex"), 1);
             GL.UniformMatrix4(_pgm.GetUniform("view"), false, ref _view);
             GL.UniformMatrix4(_pgm.GetUniform("proj"), false, ref _proj);
 
-            GL.DrawArraysInstancedBaseInstance(PrimitiveType.Triangles, 0, 36, 5, 16);
+            GL.DrawArraysInstancedBaseInstance(PrimitiveType.Triangles,
+                _panelVertices.Offset, _panelVertices.Length,
+                _stoneTiles.Length, _stoneTiles.Offset);
 
             _pgm.DisableAllAttribArrays();
 

@@ -4,15 +4,21 @@ using OpenTK;
 
 namespace hexworld
 {
-    public struct TileData
+    [VertexData]
+    public struct Tile
     {
         [JsonProperty("pos")]
         [VertexPointer("glbpos", 3, Divisor = 1)]
         public Vector3 Position;
 
-        public TileData(Vector3 position)
+        public Tile(Vector3 position)
         {
             Position = position;
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(Position)}: {Position}";
         }
     }
 }

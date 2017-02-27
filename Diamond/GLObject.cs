@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using OpenTK.Graphics;
+using NLog;
 
 namespace Diamond
 {
@@ -9,6 +10,11 @@ namespace Diamond
     /// </summary>
     public abstract class GLObject : IDisposable
     {
+        /// <summary>
+        /// Logger for this class
+        /// </summary>
+        protected Logger Log { get; private set; }
+
         /// <summary>
         /// The name of this object
         /// </summary>
@@ -21,6 +27,9 @@ namespace Diamond
         protected GLObject(uint id)
         {
             Id = id;
+
+            Log = LogManager.GetLogger(GetType().FullName);
+            Log.Trace("Created {0}", this);
         }
 
         /// <summary>
@@ -35,10 +44,12 @@ namespace Diamond
         {
             if (GraphicsContext.CurrentContext == null)
             {
-                Debug.WriteLine($"No current context, assuming {GetType().Name} {Id} is disposed.", "Warning");
+                Log.Warn("No current context, assuming {0} is disposed.", this);
                 return;
             }
+
             Delete();
+            Log.Trace("Disposed {0}", this);
             GC.SuppressFinalize(this);
         }
 
@@ -46,6 +57,8 @@ namespace Diamond
         {
             Dispose();
         }
+
+        public override string ToString() => $"{GetType().Name} {Id}";
 
         public static explicit operator uint(GLObject o) => o.Id;
         public static explicit operator int(GLObject o) => (int) o.Id;

@@ -5,10 +5,9 @@ in float light;
 
 uniform sampler2D tex;
 
-void main ()
+void main ()l
 {
 	vec4 color = texture(tex, vcoord);
-	color.w = 1;
 	color.xyz *= light;
 	gl_FragColor = clamp(color, 0, 1);
 }

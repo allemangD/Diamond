@@ -95,19 +95,7 @@ namespace Diamond.Shaders
                 GL.VertexAttribPointer(loc, attr.Size, attr.Type, attr.Normalized, vdi.Stride, attr.Offset);
             }
         }
-
-//        public void EnableAllAttribArrays()
-//        {
-//            foreach (var loc in attributes.Values)
-//                GL.EnableVertexAttribArray(loc);
-//        }
-//
-//        public void DisableAllAttribArrays()
-//        {
-//            foreach (var loc in attributes.Values)
-//                GL.DisableVertexAttribArray(loc);
-//        }
-
+        
         public void Use()
         {
             GL.UseProgram(Id);

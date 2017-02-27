@@ -21,7 +21,6 @@ namespace Diamond
         protected GLObject(uint id)
         {
             Id = id;
-            Debug.WriteLine($"Created GLObject {ToString()} ({Id})");
         }
 
         /// <summary>
@@ -36,11 +35,10 @@ namespace Diamond
         {
             if (GraphicsContext.CurrentContext == null)
             {
-                Debug.WriteLine($"No active context. Assuming {this} ({Id}) is disposed.", "[Warning]");
+                Debug.WriteLine($"No current context, assuming {GetType().Name} {Id} is disposed.", "Warning");
                 return;
             }
             Delete();
-            Debug.WriteLine($"Disposed GLObject {ToString()} ({Id})");
             GC.SuppressFinalize(this);
         }
 

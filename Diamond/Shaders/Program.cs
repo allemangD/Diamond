@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+﻿using System.Collections.Generic;
 using System.Text;
 using Diamond.Buffers;
 using OpenTK.Graphics.OpenGL4;

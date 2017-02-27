@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
-using System.Threading.Tasks;
 using Diamond.Buffers;
-using Diamond.Shaders;
 using Newtonsoft.Json;
 using OpenTK.Graphics.OpenGL4;
 
-namespace hexworld
+namespace Diamond
 {
     public class Mesh<T> where T : struct
     {
@@ -67,6 +62,7 @@ namespace hexworld
             return new Mesh<T>(vertices);
         }
 
+        //todo add fromObj
 
         public static T[] Join<T>(params Mesh<T>[] meshes) where T : struct => Join((IEnumerable<Mesh<T>>) meshes);
 

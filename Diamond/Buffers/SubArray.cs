@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
 using System.Linq;
-using OpenTK.Graphics.ES20;
 
 namespace Diamond.Buffers
 {

@@ -51,7 +51,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Mesh.cs" />
     <Compile Include="Tile.cs" />
     <Compile Include="Vertex.cs" />
     <Compile Include="HexRender.cs" />
@@ -86,6 +85,7 @@
     <None Include="res\data_tile_grass.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="res\sides.obj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="res\grass.png">

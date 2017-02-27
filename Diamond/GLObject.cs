@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
 
 namespace Diamond
 {

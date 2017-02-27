@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using Diamond;
 using Diamond.Buffers;
 using Diamond.Shaders;
 using Diamond.Textures;

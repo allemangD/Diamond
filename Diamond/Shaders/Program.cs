@@ -19,10 +19,7 @@ namespace Diamond.Shaders
         {
         }
 
-        protected override void Delete()
-        {
-            GL.DeleteProgram(Id);
-        }
+        protected override void Delete() => GL.DeleteProgram(Id);
 
         public void Attach(Shader shader) => GL.AttachShader(Id, shader.Id);
 

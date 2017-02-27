@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL;
 
 namespace Diamond
 {
@@ -19,6 +23,7 @@ namespace Diamond
         protected GLObject(uint id)
         {
             Id = id;
+            Debug.WriteLine($"Created GLObject {ToString()} ({Id})");
         }
 
         /// <summary>
@@ -26,16 +31,18 @@ namespace Diamond
         /// </summary>
         protected abstract void Delete();
 
-        private bool _disposed = false;
-
         /// <summary>
         /// Free the name of this object
         /// </summary>
         public void Dispose()
         {
-            if (_disposed) return;
-            _disposed = true;
+            if (GraphicsContext.CurrentContext == null)
+            {
+                Debug.WriteLine($"No active context. Assuming {this} ({Id}) is disposed.", "[Warning]");
+                return;
+            }
             Delete();
+            Debug.WriteLine($"Disposed GLObject {ToString()} ({Id})");
             GC.SuppressFinalize(this);
         }
 

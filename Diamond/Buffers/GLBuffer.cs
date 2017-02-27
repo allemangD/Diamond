@@ -25,10 +25,7 @@ namespace Diamond.Buffers
             GL.BindBuffer(Target, Id);
         }
 
-        protected override void Delete()
-        {
-            GL.DeleteBuffer(Id);
-        }
+        protected override void Delete() => GL.DeleteBuffer(Id);
 
         public void Data<T>(T[] data) where T : struct
         {

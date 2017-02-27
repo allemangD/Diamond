@@ -13,7 +13,12 @@ namespace Diamond.Shaders
         /// The type of this shader.
         /// </summary>
         public readonly ShaderType Type;
-       
+
+        /// <summary>
+        /// The source file name, if it was loaded from a file.
+        /// </summary>
+        public string SourceFile { get; private set; }
+
         /// <summary>
         /// Gets and sets the shader source with <code>glShaderSource</code> and <code>glGetShaderSource</code>.
         /// </summary>
@@ -55,13 +60,7 @@ namespace Diamond.Shaders
             Type = type;
         }
 
-        /// <summary>
-        /// Frees this gl object. Called by <code>GLObject.Dispose()</code>.
-        /// </summary>
-        protected override void Delete()
-        {
-            GL.DeleteShader(Id);
-        }
+        protected override void Delete() => GL.DeleteShader(Id);
 
         /// <summary>
         /// Compile the shader.
@@ -93,8 +92,11 @@ namespace Diamond.Shaders
         /// <returns>The compiled shader</returns>
         public static Shader FromFile(string path, ShaderType type, out bool success)
         {
-            var s = new Shader(type);
-            s.Source = File.ReadAllText(path);
+            var s = new Shader(type)
+            {
+                Source = File.ReadAllText(path),
+                SourceFile = ""
+            };
             success = s.Compile();
             return s;
         }

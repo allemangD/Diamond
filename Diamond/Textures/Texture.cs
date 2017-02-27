@@ -18,10 +18,7 @@ namespace Diamond.Textures
             Target = target;
         }
 
-        protected override void Delete()
-        {
-            GL.DeleteTexture(Id);
-        }
+        protected override void Delete() => GL.DeleteTexture(Id);
 
         public void Bind()
         {

@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Diamond;
 using Diamond.Buffers;
 using Diamond.Shaders;
 using Diamond.Textures;
@@ -14,7 +9,6 @@ using Newtonsoft.Json;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
-using Buffer = Diamond.Buffers.Buffer;
 
 namespace hexworld
 {
@@ -40,8 +34,8 @@ namespace hexworld
         private Tile[] _allTiles;
         private Vertex[] _allVertices;
 
-        private Buffer _tileBuffer;
-        private Buffer _vertexBuffer;
+        private GLBuffer _tileGLBuffer;
+        private GLBuffer _vertexGLBuffer;
 
         private double _time;
 
@@ -97,14 +91,14 @@ namespace hexworld
             _allTiles = SubArray<Tile>.Join(_stoneTiles, _grassTiles, _grayTiles);
             _allVertices = SubArray<Vertex>.Join(_panelVertices, _cubeVertices, _sidesVertices);
 
-            _tileBuffer = new Buffer(BufferTarget.ArrayBuffer, BufferUsageHint.DynamicDraw);
-            _tileBuffer.Data(_allTiles);
+            _tileGLBuffer = new GLBuffer(BufferTarget.ArrayBuffer, BufferUsageHint.DynamicDraw);
+            _tileGLBuffer.Data(_allTiles);
 
-            _vertexBuffer = new Buffer(BufferTarget.ArrayBuffer, BufferUsageHint.StaticDraw);
-            _vertexBuffer.Data(_allVertices);
+            _vertexGLBuffer = new GLBuffer(BufferTarget.ArrayBuffer, BufferUsageHint.StaticDraw);
+            _vertexGLBuffer.Data(_allVertices);
 
-            _pgm.SetAttribPointers(_tileBuffer, typeof(Tile));
-            _pgm.SetAttribPointers(_vertexBuffer, typeof(Vertex));
+            _pgm.SetAttribPointers(_tileGLBuffer, typeof(Tile));
+            _pgm.SetAttribPointers(_vertexGLBuffer, typeof(Vertex));
 
             _grass = Texture.FromBitmap(new Bitmap("grass.png"));
             _stone = Texture.FromBitmap(new Bitmap("stone.png"));
@@ -127,9 +121,9 @@ namespace hexworld
                     (float) (Math.Sin((_time + ti.Position.X - ti.Position.Y / 1.5) / 1.5) * .25);
             }
 
-            _tileBuffer.SubData(_grassTiles);
+            _tileGLBuffer.SubData(_grassTiles);
 
-            _tileBuffer.Bind();
+            _tileGLBuffer.Bind();
             GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr) (5 * 3 * sizeof(float)),
                 (IntPtr) (16 * 3 * sizeof(float)), _grassTiles.ToArray());
         }
@@ -192,8 +186,8 @@ namespace hexworld
 
             _pgm.Dispose();
 
-            _tileBuffer.Dispose();
-            _vertexBuffer.Dispose();
+            _tileGLBuffer.Dispose();
+            _vertexGLBuffer.Dispose();
 
             _grass.Dispose();
             _stone.Dispose();

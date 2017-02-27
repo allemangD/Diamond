@@ -8,12 +8,12 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Buffers
 {
-    public class Buffer : GLObject
+    public class GLBuffer : GLObject
     {
         public readonly BufferTarget Target;
         public readonly BufferUsageHint Usage;
 
-        public Buffer(BufferTarget target, BufferUsageHint usage = BufferUsageHint.StaticDraw)
+        public GLBuffer(BufferTarget target, BufferUsageHint usage = BufferUsageHint.StaticDraw)
             : base((uint) GL.GenBuffer())
         {
             Target = target;

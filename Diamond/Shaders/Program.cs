@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Diamond.Buffers;
 using OpenTK.Graphics.OpenGL4;
-using Buffer = Diamond.Buffers.Buffer;
 
 namespace Diamond.Shaders
 {
@@ -88,7 +87,7 @@ namespace Diamond.Shaders
             return id;
         }
 
-        public void SetAttribPointers(Buffer buff, Type vertexType)
+        public void SetAttribPointers(GLBuffer buff, Type vertexType)
         {
             if (vertexType.GetCustomAttributes(typeof(VertexDataAttribute), false).Length == 0)
             {

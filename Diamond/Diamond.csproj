@@ -44,7 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Buffers\Buffer.cs" />
+    <Compile Include="Buffers\GLBuffer.cs" />
     <Compile Include="Buffers\SubArray.cs" />
     <Compile Include="Buffers\VertexDataAttribute.cs" />
     <Compile Include="GLObject.cs" />

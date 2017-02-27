@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Runtime.InteropServices;
+using Diamond.Shaders;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Buffers
@@ -33,12 +37,6 @@ namespace Diamond.Buffers
         public bool Normalized { get; set; } = false;
 
         /// <summary>
-        /// The divisor to Instanced draw calls
-        /// Corresponds to the <code>divisor</code> parameter to <code>glVertexAttribDivisor</code>
-        /// </summary>
-        public int Divisor { get; set; } = 0;
-
-        /// <summary>
         /// The offset of this attribute within each element
         /// Corresponds to the <code>offset</code> parameter to <code>glVertexAttribPointer</code>
         /// </summary>
@@ -48,6 +46,87 @@ namespace Diamond.Buffers
         {
             Name = name;
             Size = size;
+        }
+    }
+
+    public class VertexDataInfo
+    {
+        public readonly IReadOnlyCollection<VertexPointerAttribute> Pointers;
+        public readonly int Stride;
+        public readonly int Divisor;
+
+        private VertexDataInfo(IList<VertexPointerAttribute> pointers, int stride, int divisor)
+        {
+            Pointers = new ReadOnlyCollection<VertexPointerAttribute>(pointers);
+            Stride = stride;
+            Divisor = divisor;
+        }
+
+        public void EnableVertexPointers()
+        {
+            if (Program.Current == null)
+            {
+                throw new Exception("Cant render a mesh with no active shader."); // todo make an exception here.
+            }
+
+            foreach (var attr in Pointers)
+            {
+                if (!Program.Current.TryGetAttribute(attr.Name, out int loc)) continue;
+                GL.EnableVertexAttribArray(loc);
+                GL.VertexAttribDivisor(loc, Divisor);
+            }
+        }
+
+        public void DisableVertexPointers()
+        {
+            if (Program.Current == null)
+            {
+                throw new Exception("Cant render a mesh with no active shader."); // todo make an exception here.
+            }
+
+            foreach (var attr in Pointers)
+            {
+                if (!Program.Current.TryGetAttribute(attr.Name, out int loc)) continue;
+                GL.DisableVertexAttribArray(loc);
+            }
+        }
+
+        private static Dictionary<Type, VertexDataInfo> attribCache =
+            new Dictionary<Type, VertexDataInfo>();
+
+        public static VertexDataInfo GetInfo<T>() where T : struct
+        {
+            if (attribCache.ContainsKey(typeof(T))) return attribCache[typeof(T)];
+
+            var vertexDataAttributes = typeof(T).GetCustomAttributes(typeof(VertexDataAttribute), false);
+
+            if (vertexDataAttributes.Length != 1)
+            {
+                throw new Exception("Can't use type {typeof(T)} as mesh data."); // todo make an exception here.
+            }
+
+            var vertdataattrib = (VertexDataAttribute) vertexDataAttributes[0];
+            var divisor = vertdataattrib.Divisor;
+
+
+            var attribList = new List<VertexPointerAttribute>();
+            var stride = Marshal.SizeOf<T>();
+
+            foreach (var fieldInfo in typeof(T).GetFields())
+            {
+                var attrs = fieldInfo.GetCustomAttributes(typeof(VertexPointerAttribute), false);
+                if (attrs.Length == 0) continue;
+
+                var offset = (int) Marshal.OffsetOf<T>(fieldInfo.Name);
+                foreach (var attr in attrs)
+                {
+                    var vpa = (VertexPointerAttribute) attr;
+                    vpa.Offset = offset;
+                    attribList.Add(vpa);
+                }
+            }
+
+            return new VertexDataInfo(attribList, stride, divisor);
         }
     }
 }

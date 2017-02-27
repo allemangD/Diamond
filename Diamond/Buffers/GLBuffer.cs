@@ -8,7 +8,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Buffers
 {
-    public class GLBuffer : GLObject
+    public class GLBuffer<T> : GLObject where T : struct
     {
         public readonly BufferTarget Target;
         public readonly BufferUsageHint Usage;
@@ -27,7 +27,7 @@ namespace Diamond.Buffers
 
         protected override void Delete() => GL.DeleteBuffer(Id);
 
-        public void Data<T>(T[] data) where T : struct
+        public void Data(T[] data)
         {
             var size = Marshal.SizeOf<T>();
             Bind();

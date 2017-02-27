@@ -45,42 +45,6 @@ namespace Diamond.Buffers
                 yield return Array[Offset + i];
         }
 
-        public static T1[] Join<T1>(params SubArray<T1>[] subArrays) => Join((IEnumerable<SubArray<T1>>) subArrays);
-
-        public static T1[] Join<T1>(IEnumerable<SubArray<T1>> subArrays)
-        {
-            HashSet<T1[]> uniqueArrays = new HashSet<T1[]>();
-            foreach (var subArray in subArrays)
-            {
-                uniqueArrays.Add(subArray.Array);
-            }
-
-            if (uniqueArrays.Count == 0) return new T1[0];
-            if (uniqueArrays.Count == 1) return uniqueArrays.ToArray()[0];
-
-            var length = 0;
-            var offsets = new Dictionary<T1[], int>();
-            foreach (var uniqueArray in uniqueArrays)
-            {
-                offsets[uniqueArray] = length;
-                length += uniqueArray.Length;
-            }
-
-            var array = new T1[length];
-            foreach (var uniqueArray in uniqueArrays)
-            {
-                System.Array.ConstrainedCopy(uniqueArray, 0, array, offsets[uniqueArray], uniqueArray.Length);
-            }
-
-            foreach (var subArray in subArrays)
-            {
-                subArray.Offset = offsets[subArray.Array];
-                subArray.Array = array;
-            }
-
-            return array;
-        }
-
         public T[] ToArray()
         {
             var arr = new T[Length];
@@ -95,5 +59,45 @@ namespace Diamond.Buffers
 
             return $"[{string.Join(", ", this)}]";
         }
+    }
+
+    public static class SubArray
+    {
+        public static T[] Join<T>(params SubArray<T>[] subArrays) => Join((IEnumerable<SubArray<T>>)subArrays);
+
+        public static T[] Join<T>(IEnumerable<SubArray<T>> subArrays)
+        {
+            HashSet<T[]> uniqueArrays = new HashSet<T[]>();
+            foreach (var subArray in subArrays)
+            {
+                uniqueArrays.Add(subArray.Array);
+            }
+
+            if (uniqueArrays.Count == 0) return new T[0];
+            if (uniqueArrays.Count == 1) return uniqueArrays.ToArray()[0];
+
+            var length = 0;
+            var offsets = new Dictionary<T[], int>();
+            foreach (var uniqueArray in uniqueArrays)
+            {
+                offsets[uniqueArray] = length;
+                length += uniqueArray.Length;
+            }
+
+            var array = new T[length];
+            foreach (var uniqueArray in uniqueArrays)
+            {
+                System.Array.ConstrainedCopy(uniqueArray, 0, array, offsets[uniqueArray], uniqueArray.Length);
+            }
+
+            foreach (var subArray in subArrays)
+            {
+                subArray.Offset = offsets[subArray.Array];
+                subArray.Array = array;
+            }
+
+            return array;
+        }
+
     }
 }

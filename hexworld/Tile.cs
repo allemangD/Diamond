@@ -4,11 +4,11 @@ using OpenTK;
 
 namespace hexworld
 {
-    [VertexData]
+    [VertexData(Divisor = 1)]
     public struct Tile
     {
         [JsonProperty("pos")]
-        [VertexPointer("glbpos", 3, Divisor = 1)]
+        [VertexPointer("glbpos", 3)]
         public Vector3 Position;
 
         public Tile(Vector3 position)

@@ -9,6 +9,8 @@ namespace Diamond.Shaders
 {
     public class Program : GLObject
     {
+        public static Program Current { get; private set; }
+
         private Dictionary<string, int> uniforms = new Dictionary<string, int>();
         private Dictionary<string, int> attributes = new Dictionary<string, int>();
 
@@ -84,56 +86,41 @@ namespace Diamond.Shaders
             return id;
         }
 
-        public void SetAttribPointers(GLBuffer buff, Type vertexType)
+        public void SetAttribPointers<T>(GLBuffer<T> buff) where T : struct
         {
-            if (vertexType.GetCustomAttributes(typeof(VertexDataAttribute), false).Length == 0)
-            {
-                throw new ShaderException($"Cannot attach buffer {buff} to program {this}" +
-                                          $" with vertex {vertexType} because it has no" +
-                                          $" VertexData attribute.");
-            }
-
-            var attribList = new List<VertexPointerAttribute>();
-            var Stride = Marshal.SizeOf(vertexType);
-
-            foreach (var fieldInfo in vertexType.GetFields())
-            {
-                var attrs = fieldInfo.GetCustomAttributes(typeof(VertexPointerAttribute), false);
-                if (attrs.Length == 0) continue;
-
-                var offset = (int) Marshal.OffsetOf(vertexType, fieldInfo.Name);
-                foreach (var attr in attrs)
-                {
-                    var vpa = (VertexPointerAttribute) attr;
-                    vpa.Offset = offset;
-                    attribList.Add(vpa);
-                }
-            }
+            var vdi = VertexDataInfo.GetInfo<T>();
 
             buff.Bind();
-            foreach (var attr in attribList)
+            foreach (var attr in vdi.Pointers)
             {
                 if (!TryGetAttribute(attr.Name, out int loc)) continue;
-                GL.VertexAttribPointer(loc, attr.Size, attr.Type, attr.Normalized, Stride, attr.Offset);
-                GL.VertexAttribDivisor(loc, attr.Divisor);
+                GL.VertexAttribPointer(loc, attr.Size, attr.Type, attr.Normalized, vdi.Stride, attr.Offset);
             }
         }
 
-        public void EnableAllAttribArrays()
+//        public void EnableAllAttribArrays()
+//        {
+//            foreach (var loc in attributes.Values)
+//                GL.EnableVertexAttribArray(loc);
+//        }
+//
+//        public void DisableAllAttribArrays()
+//        {
+//            foreach (var loc in attributes.Values)
+//                GL.DisableVertexAttribArray(loc);
+//        }
+
+        public void Use()
         {
-            foreach (var loc in attributes.Values)
-                GL.EnableVertexAttribArray(loc);
+            GL.UseProgram(Id);
+            Current = this;
         }
 
-        public void DisableAllAttribArrays()
+        public static void UseDefault()
         {
-            foreach (var loc in attributes.Values)
-                GL.DisableVertexAttribArray(loc);
+            GL.UseProgram(0);
+            Current = null;
         }
-
-        public void Use() => GL.UseProgram(Id);
-
-        public static void UseDefault() => GL.UseProgram(0);
 
         public static Program FromShaders(params Shader[] shaders)
         {

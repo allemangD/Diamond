@@ -19,27 +19,31 @@ namespace hexworld
 
         #region GLObjects
 
-        private Program _pgm;
+        private Program _jsonPgm;
+        private Program _objPgm;
 
         private Texture _grass;
         private Texture _stone;
         private Texture _gray;
 
-        private GLBuffer<Tile> _tileGLBuffer;
-        private GLBuffer<Vertex> _vertexGLBuffer;
+        private GLBuffer<Tile> _tileBuffer;
+        private GLBuffer<Vertex> _vertexBuffer;
+        private GLBuffer<ObjVertex> _objBuffer;
 
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
 
-            _pgm.Dispose();
+            _jsonPgm?.Dispose();
+            _objPgm?.Dispose();
 
-            _tileGLBuffer.Dispose();
-            _vertexGLBuffer.Dispose();
+            _tileBuffer?.Dispose();
+            _vertexBuffer?.Dispose();
+            _objBuffer?.Dispose();
 
-            _grass.Dispose();
-            _stone.Dispose();
-            _gray.Dispose();
+            _grass?.Dispose();
+            _stone?.Dispose();
+            _gray?.Dispose();
         }
 
         #endregion
@@ -50,13 +54,16 @@ namespace hexworld
         private SubArray<Tile> _grassTiles;
         private SubArray<Tile> _stoneTiles;
         private SubArray<Tile> _grayTiles;
+        private SubArray<Tile> _tableTiles;
 
         private Mesh<Vertex> _cubeMesh;
         private Mesh<Vertex> _panelMesh;
         private Mesh<Vertex> _sidesMesh;
+        private Mesh<ObjVertex> _objMesh;
 
         private Tile[] _allTiles;
         private Vertex[] _allVertices;
+        private ObjVertex[] _allObjVertices;
 
         private double _time;
 
@@ -76,34 +83,54 @@ namespace hexworld
         {
             base.OnLoad(e);
 
-            var vsPath = @"res\s.vs.glsl";
-            var fsPath = @"res\s.fs.glsl";
-
-            using (var vs = Shader.FromFile(vsPath, ShaderType.VertexShader))
-            using (var fs = Shader.FromFile(fsPath, ShaderType.FragmentShader))
+            using (var vs = Shader.FromFile(@"res\s.vs.glsl", ShaderType.VertexShader))
+            using (var fs = Shader.FromFile(@"res\s.fs.glsl", ShaderType.FragmentShader))
             {
                 if (!vs.Compiled | !fs.Compiled)
                 {
                     Debug.WriteLine("Failed to compile shaders:");
-                    Debug.WriteLineIf(!vs.Compiled, $"Vertex Log:\n{vs.Log}");
-                    Debug.WriteLineIf(!fs.Compiled, $"Fragment Log:\n{fs.Log}");
+                    Debug.WriteLineIf(!vs.Compiled, $"Vertex Log ({vs.Id}):\n{vs.Log}");
+                    Debug.WriteLineIf(!fs.Compiled, $"Fragment Log ({fs.Id}):\n{fs.Log}");
                     Exit();
                     return;
                 }
 
-                _pgm = Program.FromShaders(vs, fs);
+                _jsonPgm = Program.FromShaders(vs, fs);
 
-                if (!_pgm.Link())
+                if (!_jsonPgm.Link())
                 {
-                    Debug.WriteLine($"Failed to link program:\n{_pgm.Log}");
+                    Debug.WriteLine($"Failed to link program ({_jsonPgm.Id}):\n{_jsonPgm.Log}");
                     Exit();
                     return;
                 }
             }
 
-            _cubeMesh = Mesh.FromJson<Vertex>(File.ReadAllText(@"res\data_vert_cubes.json"));
-            _panelMesh = Mesh.FromJson<Vertex>(File.ReadAllText(@"res\data_vert_panels.json"));
-            _sidesMesh = Mesh.FromJson<Vertex>(File.ReadAllText(@"res\data_vert_sides.json"));
+            using (var vs = Shader.FromFile(@"res\obj.vs.glsl", ShaderType.VertexShader))
+            using (var fs = Shader.FromFile(@"res\obj.fs.glsl", ShaderType.FragmentShader))
+            {
+                if (!vs.Compiled | !fs.Compiled)
+                {
+                    Debug.WriteLine("Failed to compile shaders:");
+                    Debug.WriteLineIf(!vs.Compiled, $"Vertex Log ({vs.Id}):\n{vs.Log}");
+                    Debug.WriteLineIf(!fs.Compiled, $"Fragment Log ({fs.Id}):\n{fs.Log}");
+                    Exit();
+                    return;
+                }
+
+                _objPgm = Program.FromShaders(vs, fs);
+
+                if (!_objPgm.Link())
+                {
+                    Debug.WriteLine($"Failed to link program ({_objPgm.Id}):\n{_jsonPgm.Log}");
+                    Exit();
+                    return;
+                }
+            }
+
+            _cubeMesh = Mesh.FromJson<Vertex>(@"res\data_vert_cubes.json");
+            _panelMesh = Mesh.FromJson<Vertex>(@"res\data_vert_panels.json");
+            _sidesMesh = Mesh.FromJson<Vertex>(@"res\data_vert_sides.json");
+            _objMesh = Mesh.FromObj(@"res\table.obj");
 
             _grassTiles = new SubArray<Tile>(
                 JsonConvert.DeserializeObject<Tile[]>(File.ReadAllText(@"res\data_tile_grass.json")));
@@ -111,18 +138,21 @@ namespace hexworld
                 JsonConvert.DeserializeObject<Tile[]>(File.ReadAllText(@"res\data_tile_stone.json")));
             _grayTiles = new SubArray<Tile>(
                 JsonConvert.DeserializeObject<Tile[]>(File.ReadAllText(@"res\data_tile_gray.json")));
+            _tableTiles = new SubArray<Tile>(
+                JsonConvert.DeserializeObject<Tile[]>(File.ReadAllText(@"res\data_tile_table.json")));
 
-            _allTiles = SubArray.Join(_stoneTiles, _grassTiles, _grayTiles);
+
+            _allTiles = SubArray.Join(_stoneTiles, _grassTiles, _grayTiles, _tableTiles);
+            _tileBuffer = new GLBuffer<Tile>(BufferTarget.ArrayBuffer, BufferUsageHint.DynamicDraw);
+            _tileBuffer.Data(_allTiles);
+
             _allVertices = Mesh.Join(_panelMesh, _cubeMesh, _sidesMesh);
+            _vertexBuffer = new GLBuffer<Vertex>(BufferTarget.ArrayBuffer, BufferUsageHint.StaticDraw);
+            _vertexBuffer.Data(_allVertices);
 
-            _tileGLBuffer = new GLBuffer<Tile>(BufferTarget.ArrayBuffer, BufferUsageHint.DynamicDraw);
-            _tileGLBuffer.Data(_allTiles);
-
-            _vertexGLBuffer = new GLBuffer<Vertex>(BufferTarget.ArrayBuffer, BufferUsageHint.StaticDraw);
-            _vertexGLBuffer.Data(_allVertices);
-
-            _pgm.SetAttribPointers(_tileGLBuffer);
-            _pgm.SetAttribPointers(_vertexGLBuffer);
+            _allObjVertices = Mesh.Join(_objMesh);
+            _objBuffer = new GLBuffer<ObjVertex>(BufferTarget.ArrayBuffer);
+            _objBuffer.Data(_allObjVertices);
 
             _grass = Texture.FromBitmap(new Bitmap(@"res\grass.png"));
             _stone = Texture.FromBitmap(new Bitmap(@"res\stone.png"));
@@ -146,9 +176,9 @@ namespace hexworld
                     (float) (Math.Sin((_time + ti.Position.X - ti.Position.Y / 1.5) / 1.5) * .25);
             }
 
-            _tileGLBuffer.SubData(_grassTiles);
+            _tileBuffer.SubData(_grassTiles);
 
-            _tileGLBuffer.Bind();
+            _tileBuffer.Bind();
             GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr) (5 * 3 * sizeof(float)),
                 (IntPtr) (16 * 3 * sizeof(float)), _grassTiles.ToArray());
         }
@@ -166,32 +196,42 @@ namespace hexworld
             GL.DepthFunc(DepthFunction.Lequal);
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            GL.Enable(EnableCap.CullFace);
-            GL.CullFace(CullFaceMode.Back);
+//            GL.Enable(EnableCap.CullFace);
+//            GL.CullFace(CullFaceMode.Back);
 
-            _pgm.Use();
+            _jsonPgm.Use();
+
+            _jsonPgm.SetAttribPointers(_tileBuffer);
+            _jsonPgm.SetAttribPointers(_vertexBuffer);
 
             _grass.Bind(0);
             _stone.Bind(1);
             _gray.Bind(2);
 
-            GL.Uniform1(_pgm.GetUniform("tex"), 0);
-            GL.UniformMatrix4(_pgm.GetUniform("view"), false, ref _view);
-            GL.UniformMatrix4(_pgm.GetUniform("proj"), false, ref _proj);
+            GL.Uniform1(_jsonPgm.GetUniform("tex"), 0);
+            GL.UniformMatrix4(_jsonPgm.GetUniform("view"), false, ref _view);
+            GL.UniformMatrix4(_jsonPgm.GetUniform("proj"), false, ref _proj);
 
             _cubeMesh.DrawInstanced(_grassTiles);
 
-            GL.Uniform1(_pgm.GetUniform("tex"), 1);
-            GL.UniformMatrix4(_pgm.GetUniform("view"), false, ref _view);
-            GL.UniformMatrix4(_pgm.GetUniform("proj"), false, ref _proj);
+            GL.Uniform1(_jsonPgm.GetUniform("tex"), 1);
 
             _panelMesh.DrawInstanced(_stoneTiles);
 
-            GL.Uniform1(_pgm.GetUniform("tex"), 2);
-            GL.UniformMatrix4(_pgm.GetUniform("view"), false, ref _view);
-            GL.UniformMatrix4(_pgm.GetUniform("proj"), false, ref _proj);
+            GL.Uniform1(_jsonPgm.GetUniform("tex"), 2);
 
             _sidesMesh.DrawInstanced(_grayTiles);
+
+            _objPgm.Use();
+
+            _objPgm.SetAttribPointers(_tileBuffer);
+            _objPgm.SetAttribPointers(_objBuffer);
+
+            GL.Uniform1(_jsonPgm.GetUniform("tex"), 2);
+            GL.UniformMatrix4(_jsonPgm.GetUniform("view"), false, ref _view);
+            GL.UniformMatrix4(_jsonPgm.GetUniform("proj"), false, ref _proj);
+
+            _objMesh.DrawInstanced(_tableTiles);
 
             SwapBuffers();
         }

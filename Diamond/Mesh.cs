@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Diamond.Buffers;
 using Newtonsoft.Json;
+using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond
@@ -54,15 +56,89 @@ namespace Diamond
         }
     }
 
+    [VertexData]
+    public struct ObjVertex
+    {
+        [VertexPointer("position", 3)]
+        public Vector3 Position;
+
+        [VertexPointer("uv", 2)]
+        public Vector2 UV;
+
+        [VertexPointer("normal", 3)]
+        public Vector3 Normal;
+
+        public ObjVertex(Vector3 position, Vector2 uv, Vector3 normal)
+        {
+            Position = position;
+            UV = uv;
+            Normal = normal;
+        }
+    }
+
     public static class Mesh
     {
-        public static Mesh<T> FromJson<T>(string json) where T : struct
+        public static Mesh<T> FromJson<T>(string file) where T : struct
         {
-            var vertices = JsonConvert.DeserializeObject<T[]>(json);
+            var vertices = JsonConvert.DeserializeObject<T[]>(File.ReadAllText(file));
             return new Mesh<T>(vertices);
         }
 
-        //todo add fromObj
+        public static Mesh<ObjVertex> FromObj(string file)
+        {
+            var lines = File.ReadAllLines(file);
+
+            var vs = new List<Vector3>();
+            var vts = new List<Vector2>();
+            var vns = new List<Vector3>();
+            var faces = new List<ObjVertex>();
+
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("#")) continue;
+
+                var items = line.Split(' ');
+
+                switch (items[0])
+                {
+                    case "v":
+                        var v = new Vector3(
+                            float.Parse(items[1]),
+                            float.Parse(items[2]),
+                            float.Parse(items[3]));
+                        vs.Add(v);
+                        break;
+                    case "vt":
+                        var vt = new Vector2(
+                            float.Parse(items[1]),
+                            1-float.Parse(items[2]));
+                        vts.Add(vt);
+                        break;
+                    case "vn":
+                        var vn = new Vector3(
+                            float.Parse(items[1]),
+                            float.Parse(items[2]),
+                            float.Parse(items[3]));
+                        vns.Add(vn);
+                        break;
+                    case "f":
+                        for (var i = 1; i < 4; i++)
+                        {
+                            var inds = items[i].Split('/');
+                            var vi = vs[int.Parse(inds[0]) - 1];
+                            var vti = vts[int.Parse(inds[1]) - 1];
+                            var vni = vns[int.Parse(inds[2]) - 1];
+                            var f = new ObjVertex(vi, vti, vni);
+                            faces.Add(f);
+                        }
+                        break;
+                }
+            }
+
+            var vertices = faces.ToArray();
+
+            return new Mesh<ObjVertex>(vertices);
+        }
 
         public static T[] Join<T>(params Mesh<T>[] meshes) where T : struct => Join((IEnumerable<Mesh<T>>) meshes);
 

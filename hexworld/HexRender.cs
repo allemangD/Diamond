@@ -24,15 +24,18 @@ namespace hexworld
 
         private Texture _grass;
         private Texture _stone;
+        private Texture _gray;
 
         private Matrix4 _view;
         private Matrix4 _proj;
 
         private SubArray<Tile> _grassTiles;
         private SubArray<Tile> _stoneTiles;
+        private SubArray<Tile> _grayTiles;
 
         private SubArray<Vertex> _cubeVertices;
         private SubArray<Vertex> _panelVertices;
+        private SubArray<Vertex> _sidesVertices;
 
         private Tile[] _allTiles;
         private Vertex[] _allVertices;
@@ -49,29 +52,6 @@ namespace hexworld
             Height = Height;
             X = (DisplayDevice.Default.Width - Width) / 2;
             Y = (DisplayDevice.Default.Height - Height) / 2;
-        }
-
-        protected override void OnUpdateFrame(FrameEventArgs e)
-        {
-            base.OnUpdateFrame(e);
-
-            _time += e.Time;
-
-            _view = Matrix4.LookAt(10 * Vector3.One, Vector3.Zero, Vector3.UnitZ);
-            _proj = Matrix4.CreateOrthographic(Width / 100f, Height / 100f, -100, 100);
-
-            for (var i = 0; i < _grassTiles.Length; i++)
-            {
-                var ti = _grassTiles[i];
-                ti.Position.Z = (float) (Math.Sin((_time + ti.Position.X - ti.Position.Y / 1.5) / 1.5) * .25);
-                _grassTiles[i] = ti;
-            }
-
-            _tileBuffer.SubData(_grassTiles);
-
-            _tileBuffer.Bind();
-            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr) (5 * 3 * sizeof(float)),
-                (IntPtr) (16 * 3 * sizeof(float)), _grassTiles.ToArray());
         }
 
         protected override void OnLoad(EventArgs e)
@@ -104,14 +84,18 @@ namespace hexworld
                 JsonConvert.DeserializeObject<Vertex[]>(File.ReadAllText("data_vert_cubes.json")));
             _panelVertices = new SubArray<Vertex>(
                 JsonConvert.DeserializeObject<Vertex[]>(File.ReadAllText("data_vert_panels.json")));
+            _sidesVertices = new SubArray<Vertex>(
+                JsonConvert.DeserializeObject<Vertex[]>(File.ReadAllText("data_vert_sides.json")));
 
             _grassTiles = new SubArray<Tile>(
                 JsonConvert.DeserializeObject<Tile[]>(File.ReadAllText("data_tile_grass.json")));
             _stoneTiles = new SubArray<Tile>(
                 JsonConvert.DeserializeObject<Tile[]>(File.ReadAllText("data_tile_stone.json")));
+            _grayTiles = new SubArray<Tile>(
+                JsonConvert.DeserializeObject<Tile[]>(File.ReadAllText("data_tile_gray.json")));
 
-            _allTiles = SubArray<Tile>.Join(_stoneTiles, _grassTiles);
-            _allVertices = SubArray<Vertex>.Join(_panelVertices, _cubeVertices);
+            _allTiles = SubArray<Tile>.Join(_stoneTiles, _grassTiles, _grayTiles);
+            _allVertices = SubArray<Vertex>.Join(_panelVertices, _cubeVertices, _sidesVertices);
 
             _tileBuffer = new Buffer(BufferTarget.ArrayBuffer, BufferUsageHint.DynamicDraw);
             _tileBuffer.Data(_allTiles);
@@ -124,19 +108,30 @@ namespace hexworld
 
             _grass = Texture.FromBitmap(new Bitmap("grass.png"));
             _stone = Texture.FromBitmap(new Bitmap("stone.png"));
+            _gray = Texture.FromBitmap(new Bitmap("gray.png"));
         }
 
-        protected override void OnClosed(EventArgs e)
+        protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            base.OnClosed(e);
+            base.OnUpdateFrame(e);
 
-            _pgm.Dispose();
+            _time += e.Time;
 
-            _tileBuffer.Dispose();
-            _vertexBuffer.Dispose();
+            _view = Matrix4.CreateRotationZ((float) _time/3)*Matrix4.LookAt(10 * Vector3.One, Vector3.Zero, Vector3.UnitZ);
+            _proj = Matrix4.CreateOrthographic(Width / 100f, Height / 100f, -100, 100);
 
-            _grass.Dispose();
-            _stone.Dispose();
+            for (var i = 0; i < _grassTiles.Length; i++)
+            {
+                var ti = _grassTiles[i];
+                _grassTiles[i].Position.Z =
+                    (float) (Math.Sin((_time + ti.Position.X - ti.Position.Y / 1.5) / 1.5) * .25);
+            }
+
+            _tileBuffer.SubData(_grassTiles);
+
+            _tileBuffer.Bind();
+            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr) (5 * 3 * sizeof(float)),
+                (IntPtr) (16 * 3 * sizeof(float)), _grassTiles.ToArray());
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
@@ -160,6 +155,7 @@ namespace hexworld
 
             _grass.Bind(0);
             _stone.Bind(1);
+            _gray.Bind(2);
 
             GL.Uniform1(_pgm.GetUniform("tex"), 0);
             GL.UniformMatrix4(_pgm.GetUniform("view"), false, ref _view);
@@ -177,9 +173,31 @@ namespace hexworld
                 _panelVertices.Offset, _panelVertices.Length,
                 _stoneTiles.Length, _stoneTiles.Offset);
 
+            GL.Uniform1(_pgm.GetUniform("tex"), 2);
+            GL.UniformMatrix4(_pgm.GetUniform("view"), false, ref _view);
+            GL.UniformMatrix4(_pgm.GetUniform("proj"), false, ref _proj);
+
+            GL.DrawArraysInstancedBaseInstance(PrimitiveType.Triangles,
+                _sidesVertices.Offset, _sidesVertices.Length,
+                _grayTiles.Length, _grayTiles.Offset);
+
             _pgm.DisableAllAttribArrays();
 
             SwapBuffers();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+
+            _pgm.Dispose();
+
+            _tileBuffer.Dispose();
+            _vertexBuffer.Dispose();
+
+            _grass.Dispose();
+            _stone.Dispose();
+            _gray.Dispose();
         }
     }
 }

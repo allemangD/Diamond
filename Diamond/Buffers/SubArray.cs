@@ -13,19 +13,13 @@ namespace Diamond.Buffers
         public int Offset;
         public int Length;
 
-        public T this[int i]
+        public ref T this[int i]
         {
             get
             {
                 if (i < 0 || i >= Length)
                     throw new IndexOutOfRangeException("Index out of bounds of subarray");
-                return Array[i + Offset];
-            }
-            set
-            {
-                if (i < 0 || i >= Length)
-                    throw new IndexOutOfRangeException("Index out of bounds of subarray.");
-                Array[i + Offset] = value;
+                return ref Array[i + Offset];
             }
         }
 

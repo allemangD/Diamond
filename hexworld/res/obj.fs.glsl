@@ -5,7 +5,7 @@ in float light;
 
 uniform sampler2D tex;
 
-void main ()l
+void main ()
 {
 	vec4 color = texture(tex, vcoord);
 	color.xyz *= light;

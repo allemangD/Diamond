@@ -7,6 +7,7 @@ using Diamond.Buffers;
 using Diamond.Level;
 using Diamond.Shaders;
 using Diamond.Textures;
+using Diamond.Util;
 using Newtonsoft.Json.Linq;
 using OpenTK;
 using OpenTK.Graphics;

@@ -68,5 +68,10 @@ namespace Diamond.Textures
             tex.Unbind();
             return tex;
         }
+
+        public static Texture FromFile(string path)
+        {
+            return FromBitmap(new Bitmap(path));
+        }
     }
 }

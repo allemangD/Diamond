@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Diamond.Buffers
+namespace Diamond.Util
 {
     public class SubArray<T> : IEnumerable<T>
     {

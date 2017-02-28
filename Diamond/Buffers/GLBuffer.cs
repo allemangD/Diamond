@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using Diamond.Util;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Buffers
@@ -30,7 +31,7 @@ namespace Diamond.Buffers
             GL.BufferData(Target, (IntPtr) (size * data.Length), data, Usage);
         }
 
-        public void SubData<T>(SubArray<T> data) where T : struct
+        public void SubData(SubArray<T> data)
         {
             var size = Marshal.SizeOf<T>();
             Bind();

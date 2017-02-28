@@ -52,7 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Buffers\GLBuffer.cs" />
-    <Compile Include="Buffers\SubArray.cs" />
+    <Compile Include="Util\SubArray.cs" />
     <Compile Include="Buffers\VertexDataAttribute.cs" />
     <Compile Include="GLObject.cs" />
     <Compile Include="Level\Level.cs" />

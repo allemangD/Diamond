@@ -1,4 +1,5 @@
 ﻿using Diamond.Buffers;
+using Diamond.Shaders;
 
 namespace Diamond.Level
 {
@@ -6,11 +7,13 @@ namespace Diamond.Level
     {
         public SubArray<TileData> Tiles;
         public Mesh<ObjVertex> Mesh;
+        public Program Program;
 
-        public TileGroup(SubArray<TileData> tiles, Mesh<ObjVertex> mesh)
+        public TileGroup(Mesh<ObjVertex> mesh, Program program, SubArray<TileData> tiles)
         {
-            Tiles = tiles;
             Mesh = mesh;
+            Program = program;
+            Tiles = tiles;
         }
     }
 }

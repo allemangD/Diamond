@@ -12,8 +12,10 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Level
 {
-    public class Level
+    public class Level : IDisposable
     {
+        public Dictionary<string, Program> Programs { get; private set; }
+
         private TileData[] _allTiles;
         private ObjVertex[] _allVertices;
 
@@ -39,9 +41,9 @@ namespace Diamond.Level
             var dir = Path.GetDirectoryName(file);
 
             // this is horrendous, but not as bad as trying to directly deserialize it.
-            
+
             var meshes = levelData["models"]
-                .Select(path => Mesh.FromObj(Path.Combine(dir, (string) path)))
+                .Select(path => Mesh.FromObj(Path.Combine(dir, (string) path), false))
                 .SelectMany(objects => objects)
                 .ToArray();
 
@@ -50,20 +52,32 @@ namespace Diamond.Level
 
             var allVertices = Mesh.Join(meshes);
 
+            var programs = levelData["shaders"]
+                .Select(shader => new
+                {
+                    name = (string) shader["name"],
+                    program = Program.FromFiles(
+                        shader["files"]
+                            .Select(path => Path.Combine(dir, (string) path))
+                            .ToArray())
+                })
+                .ToDictionary(s => s.name, s => s.program);
+
             var tilegroups = levelData["tiles"]
                 .Select(tile => new
                 {
                     info = new
                     {
-                        mesh = meshDict[(string) tile["mesh"]]
+                        mesh = meshDict[(string) tile["mesh"]],
+                        shader = programs[(string) tile["shader"]]
                     },
                     pos = tile["pos"].ToObject<Vector3>()
                 })
                 .GroupBy(tile => tile.info)
-                .Select(group => new TileGroup(new SubArray<TileData>(
+                .Select(group => new TileGroup(group.Key.mesh, group.Key.shader,
+                    new SubArray<TileData>(
                         group.Select(data => new TileData(data.pos))
-                            .ToArray()),
-                    group.Key.mesh))
+                            .ToArray())))
                 .ToArray();
 
             var tileArrays = tilegroups
@@ -76,7 +90,8 @@ namespace Diamond.Level
                 _allTiles = allTiles,
                 _allVertices = allVertices,
                 _meshes = meshes,
-                _tileGroups = tilegroups
+                _tileGroups = tilegroups,
+                Programs = programs
             };
 
             level.InitializeBuffers();
@@ -86,16 +101,30 @@ namespace Diamond.Level
 
         public void Draw()
         {
-            if (Program.Current == null)
-                throw new Exception("cant render without a shader.");
-
-            Program.Current.SetAttribPointers(_vertexBuffer);
-            Program.Current.SetAttribPointers(_tileBuffer);
-
             foreach (var tileGroup in _tileGroups)
             {
+                var pgm = tileGroup.Program;
+                pgm.Use();
+                pgm.SetAttribPointers(_vertexBuffer);
+                pgm.SetAttribPointers(_tileBuffer);
                 tileGroup.Mesh.DrawInstanced(tileGroup.Tiles);
             }
+        }
+
+        public void Dispose()
+        {
+            _tileBuffer?.Dispose();
+            _vertexBuffer?.Dispose();
+
+            foreach (var program in Programs.Values)
+                program?.Dispose();
+
+            GC.SuppressFinalize(this);
+        }
+
+        ~Level()
+        {
+            Dispose();
         }
     }
 }

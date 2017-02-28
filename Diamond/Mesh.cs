@@ -61,7 +61,7 @@ namespace Diamond
 
     public static class Mesh
     {
-        public static Mesh<ObjVertex>[] FromObj(string file)
+        public static Mesh<ObjVertex>[] FromObj(string file, bool join = true)
         {
             var lines = File.ReadAllLines(file);
 
@@ -125,7 +125,8 @@ namespace Diamond
             if (faces.Count > 0)
                 meshes.Add(new Mesh<ObjVertex>(faces.ToArray()) {Name = name});
 
-            Join(meshes);
+            if (join)
+                Join(meshes);
 
             return meshes.ToArray();
         }

@@ -1,17 +1,52 @@
 ﻿{
   "models": [
-    "door.obj"
+    "door.obj",
+    "cube.obj"
+  ],
+  "shaders": [
+    {
+      "name": "textured",
+      "files": [
+        "obj.fs.glsl",
+        "obj.vs.glsl",
+      ]
+    }
   ],
   "tiles": [
-    { "mesh": "BaseLeft", "pos": { "x": -1, "y": 0, "z": 0 } },
-    { "mesh": "BaseRight", "pos": { "x": 1, "y": 0, "z": 0 } },
-    { "mesh": "Stairs", "pos": { "x": 0, "y": 0, "z": 0 } },
-    { "mesh": "ColLeft", "pos": { "x": -1, "y": 0, "z": 1 } },
-    { "mesh": "ColRight", "pos": { "x": 1, "y": 0, "z": 1 } },
-    { "mesh": "ColLeft", "pos": { "x": -1, "y": 0, "z": 2 } },
-    { "mesh": "ColRight", "pos": { "x": 1, "y": 0, "z": 2 } },
-    { "mesh": "CapLeft", "pos": { "x": -1, "y": 0, "z": 3 } },
-    { "mesh": "Lintel", "pos": { "x": 0, "y": 0, "z": 3 } },
-    { "mesh": "CapRight", "pos": { "x": 1, "y": 0, "z": 3 } }
+    { "mesh": "BaseLeft", "shader": "textured", "pos": { "x": -1, "y": 0, "z": 0 } },
+    { "mesh": "BaseRight", "shader": "textured", "pos": { "x": 1, "y": 0, "z": 0 } },
+    { "mesh": "Stairs", "shader": "textured", "pos": { "x": 0, "y": 0, "z": 0 } },
+    { "mesh": "ColLeft", "shader": "textured", "pos": { "x": -1, "y": 0, "z": 1 } },
+    { "mesh": "ColRight", "shader": "textured", "pos": { "x": 1, "y": 0, "z": 1 } },
+    { "mesh": "ColLeft", "shader": "textured", "pos": { "x": -1, "y": 0, "z": 2 } },
+    { "mesh": "ColRight", "shader": "textured", "pos": { "x": 1, "y": 0, "z": 2 } },
+    { "mesh": "CapLeft", "shader": "textured", "pos": { "x": -1, "y": 0, "z": 3 } },
+    { "mesh": "Lintel", "shader": "textured", "pos": { "x": 0, "y": 0, "z": 3 } },
+    { "mesh": "CapRight", "shader": "textured", "pos": { "x": 1, "y": 0, "z": 3 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": -2, "y": -2, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": -2, "y": -1, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": -2, "y": 0, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": -2, "y": 1, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": -2, "y": 2, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": -1, "y": -2, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": -1, "y": -1, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": -1, "y": 0, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": -1, "y": 1, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": -1, "y": 2, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 0, "y": -2, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 0, "y": -1, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 0, "y": 0, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 0, "y": 1, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 0, "y": 2, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 1, "y": -2, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 1, "y": -1, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 1, "y": 0, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 1, "y": 1, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 1, "y": 2, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 2, "y": -2, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 2, "y": -1, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 2, "y": 0, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 2, "y": 1, "z": -1 } },
+    { "mesh": "Cube", "shader": "textured", "pos": { "x": 2, "y": 2, "z": -1 } },
   ]
 }

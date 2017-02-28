@@ -15,11 +15,10 @@ namespace hexworld
 
         #region GLObjects
 
-        private Program _objPgm;
-
         private Texture _grass;
         private Texture _stone;
         private Texture _gray;
+        private Texture _door;
 
         private Level _level;
 
@@ -27,13 +26,12 @@ namespace hexworld
         {
             base.OnClosed(e);
 
-            _objPgm?.Dispose();
-
             _grass?.Dispose();
             _stone?.Dispose();
             _gray?.Dispose();
+            _door?.Dispose();
 
-            // _level?.Dispose();
+            _level?.Dispose();
         }
 
         #endregion
@@ -47,7 +45,7 @@ namespace hexworld
 
 
         public HexRender(int width, int height)
-            : base(width, height, new GraphicsMode(32, 24, 0, 8))
+            : base(width, height, new GraphicsMode(32, 24, 0, 0))
         {
             Width = width;
             Height = Height;
@@ -59,13 +57,12 @@ namespace hexworld
         {
             base.OnLoad(e);
 
-            _objPgm = Program.FromFiles(@"res\obj.vs.glsl", @"res\obj.fs.glsl");
-
             _level = Level.LoadLevel(@"res\level.json");
 
             _grass = Texture.FromBitmap(new Bitmap(@"res\grass.png"));
             _stone = Texture.FromBitmap(new Bitmap(@"res\stone.png"));
             _gray = Texture.FromBitmap(new Bitmap(@"res\gray.png"));
+            _door = Texture.FromBitmap(new Bitmap(@"res\door.png"));
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
@@ -92,23 +89,19 @@ namespace hexworld
             GL.DepthFunc(DepthFunction.Lequal);
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            GL.Enable(EnableCap.CullFace);
-            GL.CullFace(CullFaceMode.Back);
 
-            if (_objPgm.Linked)
-            {
-                _objPgm.Use();
+            _grass.Bind(0);
+            _stone.Bind(1);
+            _gray.Bind(2);
+            _door.Bind(3);
 
-                _grass.Bind(0);
-                _stone.Bind(1);
-                _gray.Bind(2);
-
-                GL.Uniform1(_objPgm.GetUniform("tex"), 2);
-                GL.UniformMatrix4(_objPgm.GetUniform("view"), false, ref _view);
-                GL.UniformMatrix4(_objPgm.GetUniform("proj"), false, ref _proj);
-
-                _level.Draw();
-            }
+            var pgm = _level.Programs["textured"];
+            pgm.Use();
+            GL.Uniform1(pgm.GetUniform("tex"), 0);
+            GL.UniformMatrix4(pgm.GetUniform("view"), false, ref _view);
+            GL.UniformMatrix4(pgm.GetUniform("proj"), false, ref _proj);
+            
+            _level.Draw();
 
             SwapBuffers();
         }

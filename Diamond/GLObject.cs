@@ -13,7 +13,7 @@ namespace Diamond
         /// <summary>
         /// Logger for this class
         /// </summary>
-        protected Logger Log { get; private set; }
+        protected Logger Log { get; }
 
         /// <summary>
         /// The name of this object

@@ -89,7 +89,7 @@ namespace hexworld
             _cubeMesh = Mesh.FromJson<Vertex>(@"res\data_vert_cubes.json");
             _panelMesh = Mesh.FromJson<Vertex>(@"res\data_vert_panels.json");
             _sidesMesh = Mesh.FromJson<Vertex>(@"res\data_vert_sides.json");
-            _objMesh = Mesh.FromObj(@"res\table.obj");
+            _objMesh = Mesh.FromObj(@"res\door.obj")[0];
 
             _grassTiles = new SubArray<Tile>(
                 JsonConvert.DeserializeObject<Tile[]>(File.ReadAllText(@"res\data_tile_grass.json")));

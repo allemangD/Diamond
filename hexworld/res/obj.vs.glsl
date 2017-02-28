@@ -18,5 +18,5 @@ void main ()
 	gl_Position = pv * vec4(pos, 1);
 	vcoord = uv;
 	
-	light = dot(vec3(0, 0, 1), normal) / 2 + .5;
+	light = dot(vec3(.2, .3, 1), normal) / 2 + .5;
 }

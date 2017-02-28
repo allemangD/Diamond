@@ -13,6 +13,8 @@ namespace Diamond
         public SubArray<T> Vertices;
         public PrimitiveType Primitive;
 
+        public string Name { get; set; }
+
         private static VertexDataInfo tVdi;
         private static List<VertexPointerAttribute> attribs;
 
@@ -84,10 +86,11 @@ namespace Diamond
             return new Mesh<T>(vertices);
         }
 
-        public static Mesh<ObjVertex> FromObj(string file)
+        public static Mesh<ObjVertex>[] FromObj(string file)
         {
             var lines = File.ReadAllLines(file);
 
+            var meshes = new List<Mesh<ObjVertex>>();
             var vs = new List<Vector3>();
             var vts = new List<Vector2>();
             var vns = new List<Vector3>();
@@ -111,7 +114,7 @@ namespace Diamond
                     case "vt":
                         var vt = new Vector2(
                             float.Parse(items[1]),
-                            1-float.Parse(items[2]));
+                            1 - float.Parse(items[2]));
                         vts.Add(vt);
                         break;
                     case "vn":
@@ -125,19 +128,27 @@ namespace Diamond
                         for (var i = 1; i < 4; i++)
                         {
                             var inds = items[i].Split('/');
-                            var vi = vs[int.Parse(inds[0]) - 1];
-                            var vti = vts[int.Parse(inds[1]) - 1];
-                            var vni = vns[int.Parse(inds[2]) - 1];
+                            var vi = inds[0] == "" ? Vector3.Zero : vs[int.Parse(inds[0]) - 1];
+                            var vti = inds[1] == "" ? Vector2.Zero : vts[int.Parse(inds[1]) - 1];
+                            var vni = inds[2] == "" ? Vector3.Zero : vns[int.Parse(inds[2]) - 1];
                             var f = new ObjVertex(vi, vti, vni);
                             faces.Add(f);
+                        }
+                        break;
+                    case "o":
+                        if (faces.Count > 0)
+                        {
+                            meshes.Add(new Mesh<ObjVertex>(faces.ToArray()));
+                            faces.Clear();
                         }
                         break;
                 }
             }
 
-            var vertices = faces.ToArray();
+            if (faces.Count > 0)
+                meshes.Add(new Mesh<ObjVertex>(faces.ToArray()));
 
-            return new Mesh<ObjVertex>(vertices);
+            return meshes.ToArray();
         }
 
         public static T[] Join<T>(params Mesh<T>[] meshes) where T : struct => Join((IEnumerable<Mesh<T>>) meshes);

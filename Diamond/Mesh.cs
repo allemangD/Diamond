@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.PerformanceData;
 using System.IO;
 using System.Linq;
 using Diamond.Buffers;
@@ -91,6 +92,7 @@ namespace Diamond
             var lines = File.ReadAllLines(file);
 
             var meshes = new List<Mesh<ObjVertex>>();
+            var name = file;
             var vs = new List<Vector3>();
             var vts = new List<Vector2>();
             var vns = new List<Vector3>();
@@ -138,15 +140,18 @@ namespace Diamond
                     case "o":
                         if (faces.Count > 0)
                         {
-                            meshes.Add(new Mesh<ObjVertex>(faces.ToArray()));
+                            meshes.Add(new Mesh<ObjVertex>(faces.ToArray()) {Name = name});
                             faces.Clear();
                         }
+                        name = items[1];
                         break;
                 }
             }
 
             if (faces.Count > 0)
-                meshes.Add(new Mesh<ObjVertex>(faces.ToArray()));
+                meshes.Add(new Mesh<ObjVertex>(faces.ToArray()) {Name = name});
+
+            Join(meshes);
 
             return meshes.ToArray();
         }

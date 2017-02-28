@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using Diamond;
 using Diamond.Buffers;
 using Diamond.Shaders;
@@ -13,57 +15,163 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace hexworld
 {
+    public class Level
+    {
+        [JsonProperty("models")]
+        private string[] MeshNames { get; set; }
+
+        [JsonProperty("tiles")]
+        private TileInfo[] TileInfos { get; set; }
+
+        private TileData[] _allTiles;
+        private ObjVertex[] _allVertices;
+
+        private Mesh<ObjVertex>[] _meshes;
+        private TileGroup[] _tileGroups;
+
+        private GLBuffer<TileData> _tileBuffer;
+        private GLBuffer<ObjVertex> _vertexBuffer;
+
+        private void InitializeBuffers()
+        {
+            _tileBuffer = new GLBuffer<TileData>(BufferTarget.ArrayBuffer, BufferUsageHint.DynamicDraw);
+            _tileBuffer.Data(_allTiles);
+
+            _vertexBuffer = new GLBuffer<ObjVertex>(BufferTarget.ArrayBuffer, BufferUsageHint.StaticDraw);
+            _vertexBuffer.Data(_allVertices);
+        }
+
+        public static Level LoadLevel(string file)
+        {
+            var level = JsonConvert.DeserializeObject<Level>(File.ReadAllText(file));
+
+            var dir = Path.GetDirectoryName(file);
+
+
+            // region assemble mesh map
+            var meshes = new Dictionary<string, Mesh<ObjVertex>>();
+
+            foreach (var meshPath in level.MeshNames)
+            {
+                var objects = Mesh.FromObj(Path.Combine(dir, meshPath));
+                Debug.WriteLine(string.Join("\n", objects.Select(o => o.Name)));
+                foreach (var mesh in objects)
+                {
+                    meshes[mesh.Name] = mesh;
+                }
+            }
+
+            // region store all used meshes
+            level._meshes = meshes.Values.ToArray();
+            // join meshes
+            level._allVertices = Mesh.Join(level._meshes);
+            Debug.WriteLine(level._allVertices.Length);
+            Debug.WriteLine(level._meshes[1].Vertices.Length);
+            Debug.WriteLine(level._meshes[1].Vertices.Offset);
+
+            var groupDict = new Dictionary<string, List<TileData>>();
+
+            foreach (var tileInfo in level.TileInfos)
+            {
+                var meshName = tileInfo.Mesh;
+                if (!groupDict.ContainsKey(meshName))
+                    groupDict[meshName] = new List<TileData>();
+                groupDict[meshName].Add(tileInfo.TileData);
+            }
+
+            var groupList = new List<TileGroup>();
+            var tileSubArrayList = new List<SubArray<TileData>>();
+
+            foreach (var kvp in groupDict)
+            {
+                var sa = new SubArray<TileData>(kvp.Value.ToArray());
+                groupList.Add(new TileGroup(sa, meshes[kvp.Key]));
+                tileSubArrayList.Add(sa);
+            }
+
+            level._tileGroups = groupList.ToArray();
+
+            level._allTiles = SubArray.Join(tileSubArrayList);
+
+            level.InitializeBuffers();
+
+            return level;
+        }
+
+        public void Draw()
+        {
+            if (Program.Current == null)
+                throw new Exception("cant render without a shader.");
+
+            Program.Current.SetAttribPointers(_vertexBuffer);
+            Program.Current.SetAttribPointers(_tileBuffer);
+
+            foreach (var tileGroup in _tileGroups)
+            {
+                tileGroup.Mesh.DrawInstanced(tileGroup.Tiles);
+            }
+        }
+    }
+
+    public class TileInfo
+    {
+        [JsonProperty("mesh")]
+        public string Mesh { get; set; }
+
+        [JsonProperty("pos")]
+        public Vector3 Position { get; set; }
+
+        public TileData TileData => new TileData(Position);
+
+        public override string ToString()
+        {
+            return $"Mesh: {Mesh}, Position: {Position}";
+        }
+    }
+
+    public class TileGroup
+    {
+        public SubArray<TileData> Tiles;
+        public Mesh<ObjVertex> Mesh;
+
+        public TileGroup(SubArray<TileData> tiles, Mesh<ObjVertex> mesh)
+        {
+            Tiles = tiles;
+            Mesh = mesh;
+        }
+    }
+
     public class HexRender : GameWindow
     {
         #region Fields
 
         #region GLObjects
 
-        private Program _jsonPgm;
         private Program _objPgm;
 
         private Texture _grass;
         private Texture _stone;
         private Texture _gray;
 
-        private GLBuffer<Tile> _tileBuffer;
-        private GLBuffer<Vertex> _vertexBuffer;
-        private GLBuffer<ObjVertex> _objBuffer;
+        private Level _level;
 
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
 
-            _jsonPgm?.Dispose();
             _objPgm?.Dispose();
-
-            _tileBuffer?.Dispose();
-            _vertexBuffer?.Dispose();
-            _objBuffer?.Dispose();
 
             _grass?.Dispose();
             _stone?.Dispose();
             _gray?.Dispose();
+
+            // _level?.Dispose();
         }
 
         #endregion
 
         private Matrix4 _view;
         private Matrix4 _proj;
-
-        private SubArray<Tile> _grassTiles;
-        private SubArray<Tile> _stoneTiles;
-        private SubArray<Tile> _grayTiles;
-        private SubArray<Tile> _tableTiles;
-
-        private Mesh<Vertex> _cubeMesh;
-        private Mesh<Vertex> _panelMesh;
-        private Mesh<Vertex> _sidesMesh;
-        private Mesh<ObjVertex> _objMesh;
-
-        private Tile[] _allTiles;
-        private Vertex[] _allVertices;
-        private ObjVertex[] _allObjVertices;
 
         private double _time;
 
@@ -83,34 +191,9 @@ namespace hexworld
         {
             base.OnLoad(e);
 
-            _jsonPgm = Program.FromFiles(@"res\s.vs.glsl", @"res\s.fs.glsl");
             _objPgm = Program.FromFiles(@"res\obj.vs.glsl", @"res\obj.fs.glsl");
 
-            _cubeMesh = Mesh.FromJson<Vertex>(@"res\data_vert_cubes.json");
-            _panelMesh = Mesh.FromJson<Vertex>(@"res\data_vert_panels.json");
-            _sidesMesh = Mesh.FromJson<Vertex>(@"res\data_vert_sides.json");
-            _objMesh = Mesh.FromObj(@"res\door.obj")[0];
-
-            _grassTiles = new SubArray<Tile>(
-                JsonConvert.DeserializeObject<Tile[]>(File.ReadAllText(@"res\data_tile_grass.json")));
-            _stoneTiles = new SubArray<Tile>(
-                JsonConvert.DeserializeObject<Tile[]>(File.ReadAllText(@"res\data_tile_stone.json")));
-            _grayTiles = new SubArray<Tile>(
-                JsonConvert.DeserializeObject<Tile[]>(File.ReadAllText(@"res\data_tile_gray.json")));
-            _tableTiles = new SubArray<Tile>(
-                JsonConvert.DeserializeObject<Tile[]>(File.ReadAllText(@"res\data_tile_table.json")));
-
-            _allTiles = SubArray.Join(_stoneTiles, _grassTiles, _grayTiles, _tableTiles);
-            _tileBuffer = new GLBuffer<Tile>(BufferTarget.ArrayBuffer, BufferUsageHint.DynamicDraw);
-            _tileBuffer.Data(_allTiles);
-
-            _allVertices = Mesh.Join(_panelMesh, _cubeMesh, _sidesMesh);
-            _vertexBuffer = new GLBuffer<Vertex>(BufferTarget.ArrayBuffer, BufferUsageHint.StaticDraw);
-            _vertexBuffer.Data(_allVertices);
-
-            _allObjVertices = Mesh.Join(_objMesh);
-            _objBuffer = new GLBuffer<ObjVertex>(BufferTarget.ArrayBuffer);
-            _objBuffer.Data(_allObjVertices);
+            _level = Level.LoadLevel(@"res\level.json");
 
             _grass = Texture.FromBitmap(new Bitmap(@"res\grass.png"));
             _stone = Texture.FromBitmap(new Bitmap(@"res\stone.png"));
@@ -126,19 +209,6 @@ namespace hexworld
             _view = Matrix4.CreateRotationZ((float) _time / 3) *
                     Matrix4.LookAt(10 * Vector3.One, Vector3.Zero, Vector3.UnitZ);
             _proj = Matrix4.CreateOrthographic(Width / 100f, Height / 100f, -100, 100);
-
-            for (var i = 0; i < _grassTiles.Length; i++)
-            {
-                var ti = _grassTiles[i];
-                _grassTiles[i].Position.Z =
-                    (float) (Math.Sin((_time + ti.Position.X - ti.Position.Y / 1.5) / 1.5) * .25);
-            }
-
-            _tileBuffer.SubData(_grassTiles);
-
-            _tileBuffer.Bind();
-            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr) (5 * 3 * sizeof(float)),
-                (IntPtr) (16 * 3 * sizeof(float)), _grassTiles.ToArray());
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
@@ -157,32 +227,6 @@ namespace hexworld
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
 
-            if (_jsonPgm.Linked)
-            {
-                _jsonPgm.Use();
-
-                _jsonPgm.SetAttribPointers(_tileBuffer);
-                _jsonPgm.SetAttribPointers(_vertexBuffer);
-
-                _grass.Bind(0);
-                _stone.Bind(1);
-                _gray.Bind(2);
-
-                GL.Uniform1(_jsonPgm.GetUniform("tex"), 0);
-                GL.UniformMatrix4(_jsonPgm.GetUniform("view"), false, ref _view);
-                GL.UniformMatrix4(_jsonPgm.GetUniform("proj"), false, ref _proj);
-
-                _cubeMesh.DrawInstanced(_grassTiles);
-
-                GL.Uniform1(_jsonPgm.GetUniform("tex"), 1);
-
-                _panelMesh.DrawInstanced(_stoneTiles);
-
-                GL.Uniform1(_jsonPgm.GetUniform("tex"), 2);
-
-                _sidesMesh.DrawInstanced(_grayTiles);
-            }
-
             if (_objPgm.Linked)
             {
                 _objPgm.Use();
@@ -191,14 +235,11 @@ namespace hexworld
                 _stone.Bind(1);
                 _gray.Bind(2);
 
-                _objPgm.SetAttribPointers(_tileBuffer);
-                _objPgm.SetAttribPointers(_objBuffer);
-
                 GL.Uniform1(_objPgm.GetUniform("tex"), 2);
                 GL.UniformMatrix4(_objPgm.GetUniform("view"), false, ref _view);
                 GL.UniformMatrix4(_objPgm.GetUniform("proj"), false, ref _proj);
 
-                _objMesh.DrawInstanced(_tableTiles);
+                _level.Draw();
             }
 
             SwapBuffers();

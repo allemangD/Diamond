@@ -5,13 +5,13 @@ using OpenTK;
 namespace hexworld
 {
     [VertexData(Divisor = 1)]
-    public struct Tile
+    public struct TileData
     {
         [JsonProperty("pos")]
         [VertexPointer("glbpos", 3)]
         public Vector3 Position;
 
-        public Tile(Vector3 position)
+        public TileData(Vector3 position)
         {
             Position = position;
         }

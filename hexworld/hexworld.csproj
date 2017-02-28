@@ -51,8 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Tile.cs" />
-    <Compile Include="Vertex.cs" />
+    <Compile Include="TileData.cs" />
     <Compile Include="HexRender.cs" />
     <Compile Include="Driver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -77,6 +76,9 @@
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
     <None Include="res\door.obj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="res\level.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="res\obj.fs.glsl">

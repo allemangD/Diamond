@@ -1,0 +1,17 @@
+﻿{
+  "models": [
+    "door.obj"
+  ],
+  "tiles": [
+    { "mesh": "BaseLeft", "pos": { "x": -1, "y": 0, "z": 0 } },
+    { "mesh": "BaseRight", "pos": { "x": 1, "y": 0, "z": 0 } },
+    { "mesh": "Stairs", "pos": { "x": 0, "y": 0, "z": 0 } },
+    { "mesh": "ColLeft", "pos": { "x": -1, "y": 0, "z": 1 } },
+    { "mesh": "ColRight", "pos": { "x": 1, "y": 0, "z": 1 } },
+    { "mesh": "ColLeft", "pos": { "x": -1, "y": 0, "z": 2 } },
+    { "mesh": "ColRight", "pos": { "x": 1, "y": 0, "z": 2 } },
+    { "mesh": "CapLeft", "pos": { "x": -1, "y": 0, "z": 3 } },
+    { "mesh": "Lintel", "pos": { "x": 0, "y": 0, "z": 3 } },
+    { "mesh": "CapRight", "pos": { "x": 1, "y": 0, "z": 3 } }
+  ]
+}

@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using OpenTK;
 
-namespace hexworld
+namespace Diamond.Level
 {
     [VertexData(Divisor = 1)]
     public struct TileData

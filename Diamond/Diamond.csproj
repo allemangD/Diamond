@@ -55,6 +55,10 @@
     <Compile Include="Buffers\SubArray.cs" />
     <Compile Include="Buffers\VertexDataAttribute.cs" />
     <Compile Include="GLObject.cs" />
+    <Compile Include="Level\Level.cs" />
+    <Compile Include="Level\TileData.cs" />
+    <Compile Include="Level\TileGroup.cs" />
+    <Compile Include="Level\TileInfo.cs" />
     <Compile Include="Mesh.cs" />
     <Compile Include="Shaders\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

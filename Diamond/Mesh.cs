@@ -59,34 +59,8 @@ namespace Diamond
         }
     }
 
-    [VertexData]
-    public struct ObjVertex
-    {
-        [VertexPointer("position", 3)]
-        public Vector3 Position;
-
-        [VertexPointer("uv", 2)]
-        public Vector2 UV;
-
-        [VertexPointer("normal", 3)]
-        public Vector3 Normal;
-
-        public ObjVertex(Vector3 position, Vector2 uv, Vector3 normal)
-        {
-            Position = position;
-            UV = uv;
-            Normal = normal;
-        }
-    }
-
     public static class Mesh
     {
-        public static Mesh<T> FromJson<T>(string file) where T : struct
-        {
-            var vertices = JsonConvert.DeserializeObject<T[]>(File.ReadAllText(file));
-            return new Mesh<T>(vertices);
-        }
-
         public static Mesh<ObjVertex>[] FromObj(string file)
         {
             var lines = File.ReadAllLines(file);

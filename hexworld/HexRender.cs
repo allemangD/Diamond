@@ -47,7 +47,7 @@ namespace hexworld
 
 
         public HexRender(int width, int height)
-            : base(width, height, new GraphicsMode(32, 24, 0, 0))
+            : base(width, height, new GraphicsMode(32, 24, 0, 8))
         {
             Width = width;
             Height = Height;

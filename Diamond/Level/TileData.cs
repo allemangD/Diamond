@@ -7,7 +7,6 @@ namespace Diamond.Level
     [VertexData(Divisor = 1)]
     public struct TileData
     {
-        [JsonProperty("pos")]
         [VertexPointer("glbpos", 3)]
         public Vector3 Position;
 

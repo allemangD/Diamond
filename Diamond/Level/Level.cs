@@ -6,18 +6,14 @@ using System.Linq;
 using Diamond.Buffers;
 using Diamond.Shaders;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Level
 {
     public class Level
     {
-        [JsonProperty("models")]
-        private string[] MeshNames { get; set; }
-
-        [JsonProperty("tiles")]
-        private TileInfo[] TileInfos { get; set; }
-
         private TileData[] _allTiles;
         private ObjVertex[] _allVertices;
 
@@ -38,55 +34,50 @@ namespace Diamond.Level
 
         public static Level LoadLevel(string file)
         {
-            var level = JsonConvert.DeserializeObject<Level>(File.ReadAllText(file));
+            var levelData = JObject.Parse(File.ReadAllText(file));
 
             var dir = Path.GetDirectoryName(file);
 
+            // this is horrendous, but not as bad as trying to directly deserialize it.
+            
+            var meshes = levelData["models"]
+                .Select(path => Mesh.FromObj(Path.Combine(dir, (string) path)))
+                .SelectMany(objects => objects)
+                .ToArray();
 
-            // region assemble mesh map
-            var meshes = new Dictionary<string, Mesh<ObjVertex>>();
+            var meshDict = meshes
+                .ToDictionary(mesh => mesh.Name, mesh => mesh);
 
-            foreach (var meshPath in level.MeshNames)
-            {
-                var objects = Mesh.FromObj(Path.Combine(dir, meshPath));
-                Debug.WriteLine(string.Join("\n", objects.Select(o => o.Name)));
-                foreach (var mesh in objects)
+            var allVertices = Mesh.Join(meshes);
+
+            var tilegroups = levelData["tiles"]
+                .Select(tile => new
                 {
-                    meshes[mesh.Name] = mesh;
-                }
-            }
+                    info = new
+                    {
+                        mesh = meshDict[(string) tile["mesh"]]
+                    },
+                    pos = tile["pos"].ToObject<Vector3>()
+                })
+                .GroupBy(tile => tile.info)
+                .Select(group => new TileGroup(new SubArray<TileData>(
+                        group.Select(data => new TileData(data.pos))
+                            .ToArray()),
+                    group.Key.mesh))
+                .ToArray();
 
-            // region store all used meshes
-            level._meshes = meshes.Values.ToArray();
-            // join meshes
-            level._allVertices = Mesh.Join(level._meshes);
-            Debug.WriteLine(level._allVertices.Length);
-            Debug.WriteLine(level._meshes[1].Vertices.Length);
-            Debug.WriteLine(level._meshes[1].Vertices.Offset);
+            var tileArrays = tilegroups
+                .Select(group => group.Tiles);
 
-            var groupDict = new Dictionary<string, List<TileData>>();
+            var allTiles = SubArray.Join(tileArrays);
 
-            foreach (var tileInfo in level.TileInfos)
+            var level = new Level
             {
-                var meshName = tileInfo.Mesh;
-                if (!groupDict.ContainsKey(meshName))
-                    groupDict[meshName] = new List<TileData>();
-                groupDict[meshName].Add(tileInfo.TileData);
-            }
-
-            var groupList = new List<TileGroup>();
-            var tileSubArrayList = new List<SubArray<TileData>>();
-
-            foreach (var kvp in groupDict)
-            {
-                var sa = new SubArray<TileData>(kvp.Value.ToArray());
-                groupList.Add(new TileGroup(sa, meshes[kvp.Key]));
-                tileSubArrayList.Add(sa);
-            }
-
-            level._tileGroups = groupList.ToArray();
-
-            level._allTiles = SubArray.Join(tileSubArrayList);
+                _allTiles = allTiles,
+                _allVertices = allVertices,
+                _meshes = meshes,
+                _tileGroups = tilegroups
+            };
 
             level.InitializeBuffers();
 

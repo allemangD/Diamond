@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using Diamond.Buffers;
 using Diamond.Shaders;
+using Diamond.Textures;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OpenTK;
@@ -21,6 +23,8 @@ namespace Diamond.Level
 
         private Mesh<ObjVertex>[] _meshes;
         private TileGroup[] _tileGroups;
+
+        private Texture[] _textures;
 
         private GLBuffer<TileData> _tileBuffer;
         private GLBuffer<ObjVertex> _vertexBuffer;
@@ -63,18 +67,26 @@ namespace Diamond.Level
                 })
                 .ToDictionary(s => s.name, s => s.program);
 
+            var texturePaths = levelData["textures"]
+                .Select(path => (string) path)
+                .ToArray();
+            var textures = texturePaths.Select(path => Texture.FromBitmap(new Bitmap(Path.Combine(dir, (string)path)))).ToArray();
+            var textureMap = texturePaths.Select((path, i) => new {path = path, i = i})
+                .ToDictionary(v => v.path, v => v.i);
+
             var tilegroups = levelData["tiles"]
                 .Select(tile => new
                 {
                     info = new
                     {
                         mesh = meshDict[(string) tile["mesh"]],
-                        shader = programs[(string) tile["shader"]]
+                        shader = programs[(string) tile["shader"]],
+                        texture = textureMap[(string) tile["tex"]]
                     },
                     pos = tile["pos"].ToObject<Vector3>()
                 })
                 .GroupBy(tile => tile.info)
-                .Select(group => new TileGroup(group.Key.mesh, group.Key.shader,
+                .Select(group => new TileGroup(group.Key.mesh, group.Key.shader, group.Key.texture,
                     new SubArray<TileData>(
                         group.Select(data => new TileData(data.pos))
                             .ToArray())))
@@ -91,7 +103,8 @@ namespace Diamond.Level
                 _allVertices = allVertices,
                 _meshes = meshes,
                 _tileGroups = tilegroups,
-                Programs = programs
+                Programs = programs,
+                _textures = textures
             };
 
             level.InitializeBuffers();
@@ -101,10 +114,17 @@ namespace Diamond.Level
 
         public void Draw()
         {
+            for (var i = 0; i < _textures.Length; i++)
+            {
+                var texture = _textures[i];
+                texture.Bind(i);
+            }
+
             foreach (var tileGroup in _tileGroups)
             {
                 var pgm = tileGroup.Program;
                 pgm.Use();
+                GL.Uniform1(pgm.GetUniform("tex"), tileGroup.Texture);
                 pgm.SetAttribPointers(_vertexBuffer);
                 pgm.SetAttribPointers(_tileBuffer);
                 tileGroup.Mesh.DrawInstanced(tileGroup.Tiles);
@@ -115,6 +135,9 @@ namespace Diamond.Level
         {
             _tileBuffer?.Dispose();
             _vertexBuffer?.Dispose();
+
+            foreach (var texture in _textures)
+                texture?.Dispose();
 
             foreach (var program in Programs.Values)
                 program?.Dispose();

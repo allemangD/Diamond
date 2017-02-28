@@ -15,21 +15,11 @@ namespace hexworld
 
         #region GLObjects
 
-        private Texture _grass;
-        private Texture _stone;
-        private Texture _gray;
-        private Texture _door;
-
         private Level _level;
 
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
-
-            _grass?.Dispose();
-            _stone?.Dispose();
-            _gray?.Dispose();
-            _door?.Dispose();
 
             _level?.Dispose();
         }
@@ -58,11 +48,6 @@ namespace hexworld
             base.OnLoad(e);
 
             _level = Level.LoadLevel(@"res\level.json");
-
-            _grass = Texture.FromBitmap(new Bitmap(@"res\grass.png"));
-            _stone = Texture.FromBitmap(new Bitmap(@"res\stone.png"));
-            _gray = Texture.FromBitmap(new Bitmap(@"res\gray.png"));
-            _door = Texture.FromBitmap(new Bitmap(@"res\door.png"));
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
@@ -90,14 +75,9 @@ namespace hexworld
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
-            _grass.Bind(0);
-            _stone.Bind(1);
-            _gray.Bind(2);
-            _door.Bind(3);
-
             var pgm = _level.Programs["textured"];
+
             pgm.Use();
-            GL.Uniform1(pgm.GetUniform("tex"), 0);
             GL.UniformMatrix4(pgm.GetUniform("view"), false, ref _view);
             GL.UniformMatrix4(pgm.GetUniform("proj"), false, ref _proj);
             

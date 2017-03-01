@@ -51,7 +51,7 @@ namespace Diamond.Shaders
 
     public class Program : GLObject
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        internal static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         internal ProgramWrapper _program;
         internal override GLWrapper Wrapper => _program;
@@ -61,7 +61,7 @@ namespace Diamond.Shaders
         private readonly Dictionary<string, int> _uniforms = new Dictionary<string, int>();
         private readonly Dictionary<string, int> _attributes = new Dictionary<string, int>();
 
-        private Program(ProgramWrapper program, string name)
+        internal Program(ProgramWrapper program, string name)
         {
             _program = program;
             Name = name;
@@ -77,19 +77,6 @@ namespace Diamond.Shaders
         {
             if (_attributes.ContainsKey(name)) return _attributes[name];
             return null;
-        }
-
-        public void SetAttribPointers<T>(GLBuffer<T> buff) where T : struct
-        {
-            var vdi = VertexDataInfo.GetInfo<T>();
-
-            buff.Bind();
-            foreach (var attr in vdi.Pointers)
-            {
-                var loc = AttributeLocation(attr.Name);
-                if (loc.HasValue)
-                    GL.VertexAttribPointer((int) loc, attr.Size, attr.Type, attr.Normalized, vdi.Stride, attr.Offset);
-            }
         }
 
         public void Use()
@@ -126,7 +113,7 @@ namespace Diamond.Shaders
             return true;
         }
 
-        public override string ToString() => $"\'{Name}\' ({Id})";
+        public override string ToString() => $"Program \'{Name}\' ({Id})";
 
         #region Factory Methods
 

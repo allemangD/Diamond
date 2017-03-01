@@ -46,7 +46,7 @@ namespace Diamond.Shaders
 
     public class Shader : GLObject
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        internal static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private readonly ShaderWrapper _shader;
         internal override GLWrapper Wrapper => _shader;
@@ -54,7 +54,7 @@ namespace Diamond.Shaders
         public string Source { get; }
         public ShaderType Type { get; }
 
-        private Shader(ShaderWrapper shader, string source, ShaderType type, string name)
+        internal Shader(ShaderWrapper shader, string source, ShaderType type, string name)
         {
             _shader = shader;
             Source = source;

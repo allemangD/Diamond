@@ -120,6 +120,14 @@ namespace Diamond.Shaders
 
         public override string ToString() => $"Program \'{Name}\' ({Id})";
 
+        protected override void Dispose(bool disposing)
+        {
+            foreach (var shader in _shaders)
+                shader.Dispose();
+
+            base.Dispose(disposing);
+        }
+
         #region Factory Methods
 
         public static Program FromShaders(string name, params Shader[] shaders) => FromShaders(name,

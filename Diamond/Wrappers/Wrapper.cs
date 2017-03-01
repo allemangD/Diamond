@@ -6,12 +6,19 @@ namespace Diamond.Wrappers
 {
     internal abstract class Wrapper : IDisposable
     {
+        /// <summary>
+        /// Logger for all Wrapper types.
+        /// </summary>
         protected static readonly Logger Logger = LogManager.GetLogger("Wrapper");
 
+        /// <summary>
+        /// The OpenGL name of this object
+        /// </summary>
         public int Id { get; private set; }
 
         public static explicit operator int(Wrapper o) => o.Id;
 
+        // Force wrapper types to generate an Id at creation time
         protected Wrapper(int id)
         {
             Id = id;
@@ -19,6 +26,9 @@ namespace Diamond.Wrappers
 
         #region IDisposable
 
+        /// <summary>
+        /// Delete this OpenGL object (glDelete*)
+        /// </summary>
         protected abstract void GLDelete();
 
         protected virtual void Dispose(bool disposing)

@@ -6,7 +6,7 @@ namespace Diamond
 {
     public abstract class GLObject : IDisposable
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        protected static readonly Logger Logger = LogManager.GetLogger("GLObject");
 
         private bool _disposed;
 
@@ -22,6 +22,7 @@ namespace Diamond
 
             if (disposing)
             {
+                Logger.Debug("Disposing {0}", this);
                 Wrapper.Dispose();
             }
 

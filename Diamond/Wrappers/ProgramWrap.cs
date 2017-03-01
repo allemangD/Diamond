@@ -5,14 +5,14 @@ namespace Diamond.Wrappers
 {
     internal sealed class ProgramWrap : Wrapper
     {
-        #region Constructor, Delete()
+        #region Constructor, GLDelete()
 
         internal ProgramWrap()
+            : base(GL.CreateProgram())
         {
-            Id = GL.CreateProgram();
         }
 
-        public override void Delete() => GL.DeleteProgram(Id);
+        protected override void GLDelete() => GL.DeleteProgram(Id);
 
         #endregion
 

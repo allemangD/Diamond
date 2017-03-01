@@ -6,15 +6,20 @@ namespace Diamond.Wrappers
 {
     internal abstract class Wrapper : IDisposable
     {
-        private static readonly Logger Logger = LogManager.GetLogger("OpenGL Wrapper");
+        protected static readonly Logger Logger = LogManager.GetLogger("Wrapper");
 
-        public int Id { get; protected set; }
+        public int Id { get; private set; }
 
         public static explicit operator int(Wrapper o) => o.Id;
 
+        protected Wrapper(int id)
+        {
+            Id = id;
+        }
+
         #region IDisposable
 
-        public abstract void Delete();
+        protected abstract void GLDelete();
 
         protected virtual void Dispose(bool disposing)
         {
@@ -26,7 +31,7 @@ namespace Diamond.Wrappers
             if (GraphicsContext.CurrentContext == null)
                 Logger.Error("No graphics context, cannot delete {0}", this);
             else
-                Delete();
+                GLDelete();
 
             Id = 0;
 

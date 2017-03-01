@@ -5,15 +5,15 @@ namespace Diamond.Wrappers
 {
     internal sealed class TextureWrap : Wrapper
     {
-        #region Constructor, Delete()
+        #region Constructor, GLDelete()
 
         internal TextureWrap(TextureTarget target)
+            : base(GL.GenTexture())
         {
-            Id = GL.GenTexture();
             Target = target;
         }
 
-        public override void Delete() => GL.DeleteTexture(Id);
+        protected override void GLDelete() => GL.DeleteTexture(Id);
 
         #endregion
 

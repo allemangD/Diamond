@@ -2173,7 +2173,7 @@
       <xs:extension base="Target">
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element name="name" minOccurs="0" maxOccurs="1" shaderType="xs:string" />
-          <xs:element name="autoCreate" minOccurs="0" maxOccurs="1" shaderType="xs:boolean" />
+          <xs:element name="autoGLCreate" minOccurs="0" maxOccurs="1" shaderType="xs:boolean" />
           <xs:element name="categoryName" minOccurs="0" maxOccurs="1" shaderType="xs:string" />
           <xs:element name="counterHelp" minOccurs="0" maxOccurs="1" shaderType="xs:string" />
           <xs:element name="counterName" minOccurs="0" maxOccurs="1" shaderType="xs:string" />
@@ -2187,7 +2187,7 @@
             <xs:documentation>Name of the target.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="autoCreate" shaderType="xs:boolean">
+        <xs:attribute name="autoGLCreate" shaderType="xs:boolean">
           <xs:annotation>
             <xs:documentation>Indicates whether performance counter should be automatically created.</xs:documentation>
           </xs:annotation>

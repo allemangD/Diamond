@@ -5,16 +5,16 @@ namespace Diamond.Wrappers
 {
     internal sealed class BufferWrap : Wrapper
     {
-        #region Constructor, Delete()
+        #region Constructor, GLDelete()
 
         internal BufferWrap(BufferTarget target, BufferUsageHint usage)
+            : base(GL.GenBuffer())
         {
-            Id = GL.GenBuffer();
             Target = target;
             Usage = usage;
         }
 
-        public override void Delete() => GL.DeleteBuffer(Id);
+        protected override void GLDelete() => GL.DeleteBuffer(Id);
 
         #endregion
 

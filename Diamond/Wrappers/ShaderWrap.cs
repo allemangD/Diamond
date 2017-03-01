@@ -5,15 +5,15 @@ namespace Diamond.Wrappers
 {
     internal sealed class ShaderWrap : Wrapper
     {
-        #region Constructor, Delete()
+        #region Constructor, GLDelete()
 
         internal ShaderWrap(ShaderType shaderType)
+            : base(GL.CreateShader(shaderType))
         {
-            Id = GL.CreateShader(shaderType);
             ShaderType = shaderType;
         }
 
-        public override void Delete() => GL.DeleteShader(Id);
+        protected override void GLDelete() => GL.DeleteShader(Id);
 
         #endregion
 

@@ -8,14 +8,11 @@ namespace Diamond.Shaders
 {
     public class Program : GLObject
     {
-        internal static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-        internal ProgramWrap _program;
+        private readonly ProgramWrap _program;
         internal override Wrapper Wrapper => _program;
 
         public static Program Current { get; private set; }
 
-        private readonly List<Shader> _shaders = new List<Shader>();
         private readonly Dictionary<string, int> _uniforms = new Dictionary<string, int>();
         private readonly Dictionary<string, int> _attributes = new Dictionary<string, int>();
 
@@ -73,7 +70,6 @@ namespace Diamond.Shaders
 
         private void Attach(Shader shader)
         {
-            _shaders.Add(shader);
             _program.Attach((ShaderWrap) shader.Wrapper);
         }
 
@@ -81,9 +77,6 @@ namespace Diamond.Shaders
 
         protected override void Dispose(bool disposing)
         {
-            foreach (var shader in _shaders)
-                shader.Dispose();
-
             base.Dispose(disposing);
         }
 
@@ -143,7 +136,17 @@ namespace Diamond.Shaders
             return FromShaders(name, shaderList);
         }
 
-        public static Program FromFiles(params string[] paths) => FromShaders(paths.Select(Shader.FromFile));
+        public static Program FromFiles(params string[] paths)
+        {
+            var shaders = paths.Select(Shader.FromFile).ToList();
+
+            var program = FromShaders(shaders);
+
+            foreach (var shader in shaders)
+                shader.Dispose();
+
+            return program;
+        }
 
         #endregion
     }

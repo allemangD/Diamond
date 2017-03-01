@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+using Buffer = Diamond.Buffers.Buffer;
 
 namespace hexworld
 {
@@ -96,9 +97,9 @@ namespace hexworld
 
             _cubeMesh = cubeMesh;
 
-            _tileBuffer = GLBuffer.FromData(SubArray.Join(_doorTiles, _floorTiles), BufferTarget.ArrayBuffer,
+            _tileBuffer = Buffer.FromData(SubArray.Join(_doorTiles, _floorTiles), BufferTarget.ArrayBuffer,
                 BufferUsageHint.DynamicDraw, "tile");
-            _meshBuffer = GLBuffer.FromData(cubeMesh.Vertices.ToArray(), BufferTarget.ArrayBuffer,
+            _meshBuffer = Buffer.FromData(cubeMesh.Vertices.ToArray(), BufferTarget.ArrayBuffer,
                 BufferUsageHint.StaticDraw, "mesh");
         }
 

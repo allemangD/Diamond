@@ -8,8 +8,6 @@ namespace Diamond.Shaders
 {
     public class Shader : GLObject
     {
-        internal static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
         private readonly ShaderWrap _shader;
         internal override Wrapper Wrapper => _shader;
 
@@ -35,7 +33,7 @@ namespace Diamond.Shaders
             [".fs"] = ShaderType.FragmentShader,
             [".frag"] = ShaderType.FragmentShader,
         };
-
+        
         public static Shader FromSource(string source, ShaderType type, string name = "Shader")
         {
             var wrapper = new ShaderWrap(type);
@@ -82,7 +80,6 @@ namespace Diamond.Shaders
             var ext = Path.GetExtension(path);
             var name = Path.GetFileNameWithoutExtension(path);
 
-
             if (ext != null)
                 if (!Extensions.ContainsKey(ext))
                     ext = Path.GetExtension(name);
@@ -94,6 +91,7 @@ namespace Diamond.Shaders
             }
 
             var type = Extensions[ext];
+
             return FromFile(path, type);
         }
 

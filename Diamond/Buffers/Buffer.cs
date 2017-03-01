@@ -42,8 +42,8 @@ namespace Diamond.Buffers
         {
             if (_vdi == null)
             {
-                var exception = new InvalidOperationException($"Cannot use type {typeof(T)} to create a VertexBuffer");
-                GLBuffer.Logger.Error(exception);
+                var exception = new InvalidOperationException($"Cannot use type {typeof(T)} to create a Vertex Buffer");
+                Logger.Error(exception);
                 throw exception;
             }
 
@@ -56,15 +56,11 @@ namespace Diamond.Buffers
             }
         }
 
-        public override string ToString() => Name == null ? $"{Target} ({Id})" : $"{Target} {Name} ({Id})";
-    }
+        public override string ToString() => Name == null
+            ? $"Buffer<{typeof(T).Name}> {Target} ({Id})"
+            : $"Buffer<{typeof(T).Name}> {Target} {Name} ({Id})";
 
-    public static class GLBuffer
-    {
-        internal static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-        public static Buffer<T> Empty<T>(BufferTarget target, BufferUsageHint usage = BufferUsageHint.StaticDraw,
-            string name = null) where T : struct
+        internal static Buffer<T> Empty(BufferTarget target, BufferUsageHint usage, string name)
         {
             var wrapper = new BufferWrap(target, usage);
             var service = new Buffer<T>(wrapper, name);
@@ -74,15 +70,23 @@ namespace Diamond.Buffers
             return service;
         }
 
-        public static Buffer<T> FromData<T>(T[] data, BufferTarget target,
-            BufferUsageHint usage = BufferUsageHint.StaticDraw,
-            string name = null) where T : struct
+        internal static Buffer<T> FromData(T[] data, BufferTarget target, BufferUsageHint usage, string name = null)
         {
-            var service = Empty<T>(target, usage, name);
+            var service = Empty(target, usage, name);
 
             service?.Data(data);
 
             return service;
         }
+    }
+
+    public static class Buffer
+    {
+        public static Buffer<T> Empty<T>(BufferTarget target, BufferUsageHint usage = BufferUsageHint.StaticDraw,
+            string name = null) where T : struct => Buffer<T>.Empty(target, usage, name);
+
+        public static Buffer<T> FromData<T>(T[] data, BufferTarget target,
+            BufferUsageHint usage = BufferUsageHint.StaticDraw,
+            string name = null) where T : struct => Buffer<T>.FromData(data, target, usage, name);
     }
 }

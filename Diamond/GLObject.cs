@@ -1,4 +1,5 @@
 ﻿using System;
+using Diamond.Wrappers;
 using NLog;
 
 namespace Diamond

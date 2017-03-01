@@ -1,8 +1,8 @@
 ﻿using System;
-using OpenTK.Graphics;
 using NLog;
+using OpenTK.Graphics;
 
-namespace Diamond
+namespace Diamond.Wrappers
 {
     internal abstract class GLWrapper : IDisposable
     {

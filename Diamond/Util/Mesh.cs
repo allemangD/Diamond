@@ -2,11 +2,10 @@
 using System.IO;
 using System.Linq;
 using Diamond.Buffers;
-using Diamond.Util;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
-namespace Diamond
+namespace Diamond.Util
 {
     public class Mesh<T> where T : struct
     {

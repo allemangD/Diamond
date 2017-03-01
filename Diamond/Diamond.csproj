@@ -52,13 +52,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Buffers\GLBuffer.cs" />
+    <Compile Include="Wrappers\GLBufferWrapper.cs" />
     <Compile Include="GLObject.cs" />
+    <Compile Include="Wrappers\ProgramWrapper.cs" />
+    <Compile Include="Wrappers\ShaderWrapper.cs" />
+    <Compile Include="Wrappers\TextureWrapper.cs" />
     <Compile Include="Util\SubArray.cs" />
     <Compile Include="Buffers\VertexDataAttribute.cs" />
-    <Compile Include="GLWrapper.cs" />
+    <Compile Include="Wrappers\GLWrapper.cs" />
     <Compile Include="Level\TileData.cs" />
-    <Compile Include="Mesh.cs" />
-    <Compile Include="ObjVertex.cs" />
+    <Compile Include="Util\Mesh.cs" />
+    <Compile Include="Util\ObjVertex.cs" />
     <Compile Include="Shaders\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shaders\Shader.cs" />

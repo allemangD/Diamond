@@ -1,7 +1,7 @@
 using Diamond.Buffers;
 using OpenTK;
 
-namespace Diamond
+namespace Diamond.Util
 {
     [VertexData]
     public struct ObjVertex

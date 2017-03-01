@@ -124,7 +124,7 @@ namespace Diamond.Shaders
         {
             if (shaders == null)
             {
-                Logger.Error("Cannot create a program with no shaders.");
+                Logger.Error("Cannot create program {0} with no shaders.", name);
                 return null;
             }
 
@@ -134,7 +134,16 @@ namespace Diamond.Shaders
             Logger.Debug("Created {0}", service);
 
             foreach (var shader in shaders)
+            {
+                if (shader == null)
+                {
+                    Logger.Error("One or more shaders failed to compile - cannot create program {0}", name);
+                    service.Dispose();
+                    return null;
+                }
+
                 wrapper.Attach((ShaderWrapper) shader.Wrapper);
+            }
 
             service.Link();
 
@@ -162,7 +171,9 @@ namespace Diamond.Shaders
             return FromShaders(name, shaderList);
         }
 
-        public static Program FromFiles(string name, params string[] paths) => FromShaders(name, paths.Select(Shader.FromFile));
+        public static Program FromFiles(string name, params string[] paths) => FromShaders(name,
+            paths.Select(Shader.FromFile));
+
         public static Program FromFiles(params string[] paths) => FromShaders(paths.Select(Shader.FromFile));
 
         #endregion

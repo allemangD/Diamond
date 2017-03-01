@@ -73,9 +73,6 @@ namespace hexworld
             _doorTex = Texture.FromFile("res/door.png");
             _grassTex = Texture.FromFile("res/grass.png");
 
-            _meshBuffer = new GLBuffer<ObjVertex>(BufferTarget.ArrayBuffer);
-            _tileBuffer = new GLBuffer<TileData>(BufferTarget.ArrayBuffer, BufferUsageHint.DynamicDraw);
-
             var dir = "res";
 
             var json = JObject.Parse(File.ReadAllText("res/level.json"));
@@ -93,8 +90,6 @@ namespace hexworld
             _doorTiles = allTiles[0];
             _floorTiles = allTiles[1];
 
-            _tileBuffer.Data(SubArray.Join(_doorTiles, _floorTiles));
-
             var cubeMesh = json["models"]
                 .Select(path => (string) path)
                 .Select(path => Path.Combine(dir, path))
@@ -104,12 +99,10 @@ namespace hexworld
 
             _cubeMesh = cubeMesh;
 
-            _meshBuffer.Data(cubeMesh.Vertices.ToArray());
-
-            // meshes, tiles, etc
-
-            // can still use JObject queries to keep it short,
-            // but don't use Level. hat structure is broken
+            _tileBuffer = GLBuffer.FromData(SubArray.Join(_doorTiles, _floorTiles), BufferTarget.ArrayBuffer,
+                BufferUsageHint.DynamicDraw, "tile");
+            _meshBuffer = GLBuffer.FromData(cubeMesh.Vertices.ToArray(), BufferTarget.ArrayBuffer,
+                BufferUsageHint.StaticDraw, "mesh");
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
@@ -137,18 +130,29 @@ namespace hexworld
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
-            _texPgm.Use();
 
-            _texPgm.SetAttribPointers(_meshBuffer);
-            _texPgm.SetAttribPointers(_tileBuffer);
+            if (_texPgm != null)
+            {
+                _texPgm.Use();
 
-            _grassTex.Bind(0);
+                _meshBuffer.PointTo(_texPgm);
+                _tileBuffer.PointTo(_texPgm);
 
-            GL.Uniform1(_texPgm.GetUniform("tex"), 0);
-            GL.UniformMatrix4(_texPgm.GetUniform("view"), false, ref _view);
-            GL.UniformMatrix4(_texPgm.GetUniform("proj"), false, ref _proj);
+                _grassTex.Bind(0);
 
-            _cubeMesh.DrawInstanced(_floorTiles);
+                var texLoc = _texPgm.UniformLocation("tex");
+                var viewLoc = _texPgm.UniformLocation("view");
+                var projLoc = _texPgm.UniformLocation("proj");
+
+                if (texLoc.HasValue)
+                    GL.Uniform1(texLoc.Value, 0);
+                if (viewLoc.HasValue)
+                    GL.UniformMatrix4(viewLoc.Value, false, ref _view);
+                if (projLoc.HasValue)
+                    GL.UniformMatrix4(projLoc.Value, false, ref _proj);
+
+                _cubeMesh.DrawInstanced(_floorTiles);
+            }
 
             SwapBuffers();
         }

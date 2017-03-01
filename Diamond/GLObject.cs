@@ -26,10 +26,7 @@ namespace Diamond
 
             if (disposing)
             {
-                if (GraphicsContext.CurrentContext == null)
-                    Logger.Error("No graphics context, cannot delete {0}", this);
-                else
-                    Wrapper.Dispose();
+                Wrapper.Dispose();
             }
 
             _disposed = true;

@@ -37,7 +37,7 @@ namespace Diamond.Shaders
             }
         }
 
-        public string InfoLog => GL.GetShaderInfoLog(Id).Trim();
+        public string InfoLog => GL.GetShaderInfoLog(Id);
 
         public void Compile() => GL.CompileShader(Id);
 
@@ -66,12 +66,12 @@ namespace Diamond.Shaders
 
         #region Factory Methods
 
-        private static readonly Dictionary<string, ShaderType> _extensions = new Dictionary<string, ShaderType>
+        private static readonly Dictionary<string, ShaderType> Extensions = new Dictionary<string, ShaderType>
         {
             [".vs"] = ShaderType.VertexShader,
             [".vert"] = ShaderType.VertexShader,
-            [".fs"] = ShaderType.VertexShader,
-            [".frag"] = ShaderType.VertexShader,
+            [".fs"] = ShaderType.FragmentShader,
+            [".frag"] = ShaderType.FragmentShader,
         };
 
         public static Shader FromSource(string source, ShaderType type, string name = "Shader")
@@ -122,16 +122,16 @@ namespace Diamond.Shaders
 
 
             if (ext != null)
-                if (!_extensions.ContainsKey(ext))
+                if (!Extensions.ContainsKey(ext))
                     ext = Path.GetExtension(name);
 
-            if (ext == null || !_extensions.ContainsKey(ext))
+            if (ext == null || !Extensions.ContainsKey(ext))
             {
                 Logger.Warn("Could not infer shader type from glsl file name {0}", path);
                 return null;
             }
 
-            var type = _extensions[ext];
+            var type = Extensions[ext];
             return FromFile(path, type);
         }
 

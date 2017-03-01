@@ -58,6 +58,7 @@ namespace Diamond.Shaders
 
         public static Program Current { get; private set; }
 
+        private readonly List<Shader> _shaders = new List<Shader>();
         private readonly Dictionary<string, int> _uniforms = new Dictionary<string, int>();
         private readonly Dictionary<string, int> _attributes = new Dictionary<string, int>();
 
@@ -113,6 +114,12 @@ namespace Diamond.Shaders
             return true;
         }
 
+        private void Attach(Shader shader)
+        {
+            _shaders.Add(shader);
+            _program.Attach((ShaderWrapper) shader.Wrapper);
+        }
+
         public override string ToString() => $"Program \'{Name}\' ({Id})";
 
         #region Factory Methods
@@ -142,7 +149,7 @@ namespace Diamond.Shaders
                     return null;
                 }
 
-                wrapper.Attach((ShaderWrapper) shader.Wrapper);
+                service.Attach(shader);
             }
 
             service.Link();
@@ -170,9 +177,6 @@ namespace Diamond.Shaders
             string name = $"[{string.Join(", ", shaderNames)}]";
             return FromShaders(name, shaderList);
         }
-
-        public static Program FromFiles(string name, params string[] paths) => FromShaders(name,
-            paths.Select(Shader.FromFile));
 
         public static Program FromFiles(params string[] paths) => FromShaders(paths.Select(Shader.FromFile));
 

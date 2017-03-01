@@ -7,6 +7,8 @@ namespace Diamond
 {
     internal abstract class GLWrapper : IDisposable
     {
+        private static Logger Logger = LogManager.GetCurrentClassLogger();
+
         public int Id { get; protected set; }
 
         public override string ToString() => $"{GetType().Name} {Id}";
@@ -26,7 +28,10 @@ namespace Diamond
 
             // no managed resources to dispose
 
-            GLDelete();
+            if (GraphicsContext.CurrentContext == null)
+                Logger.Error("No graphics context, cannot delete {0}", this);
+            else
+                GLDelete();
 
             Id = 0;
 

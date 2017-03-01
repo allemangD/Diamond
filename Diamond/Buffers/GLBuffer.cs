@@ -39,6 +39,7 @@ namespace Diamond.Buffers
     public class GLBuffer<T> : GLObject where T : struct
     {
         private readonly GLBufferWrapper _buffer;
+        private readonly VertexDataInfo _vdi;
         internal override GLWrapper Wrapper => _buffer;
 
         private readonly int _size;
@@ -56,6 +57,7 @@ namespace Diamond.Buffers
             _buffer = buffer;
             Name = name;
             _size = Marshal.SizeOf<T>();
+            _vdi = VertexDataInfo.GetInfo<T>();
         }
 
         public void Data(T[] data) => _buffer.Data(_size, data);
@@ -63,6 +65,24 @@ namespace Diamond.Buffers
         public void Data(int offset, int count, T[] data) => _buffer.SubData(_size, offset, count, data);
 
         public void Data(SubArray<T> data) => Data(data.Offset, data.Length, data.Array);
+
+        public void PointTo(Program program)
+        {
+            if (_vdi == null)
+            {
+                var exception = new InvalidOperationException($"Cannot use type {typeof(T)} to create a VertexBuffer");
+                GLBuffer.Logger.Error(exception);
+                throw exception;
+            }
+
+            _buffer.Bind();
+            foreach (var attr in _vdi.Pointers)
+            {
+                var loc = program.AttributeLocation(attr.Name);
+                if (loc.HasValue)
+                    GL.VertexAttribPointer((int) loc, attr.Size, attr.Type, attr.Normalized, _vdi.Stride, attr.Offset);
+            }
+        }
 
         public override string ToString() => Name == null ? $"{Target} ({Id})" : $"{Target} {Name} ({Id})";
     }
@@ -83,61 +103,6 @@ namespace Diamond.Buffers
         }
 
         public static GLBuffer<T> FromData<T>(T[] data, BufferTarget target,
-            BufferUsageHint usage = BufferUsageHint.StaticDraw,
-            string name = null) where T : struct
-        {
-            var service = Empty<T>(target, usage, name);
-
-            service?.Data(data);
-
-            return service;
-        }
-    }
-
-    public class VertexBuffer<T> : GLBuffer<T> where T : struct
-    {
-        private readonly VertexDataInfo _vdi;
-        private readonly GLBufferWrapper _buffer;
-
-        internal VertexBuffer(GLBufferWrapper buffer, string name)
-            : base(buffer, name)
-        {
-            _vdi = VertexDataInfo.GetInfo<T>();
-            _buffer = buffer;
-        }
-
-        public void PointTo(Program program)
-        {
-            _buffer.Bind();
-            foreach (var attr in _vdi.Pointers)
-            {
-                var loc = program.AttributeLocation(attr.Name);
-                if (loc.HasValue)
-                    GL.VertexAttribPointer((int) loc, attr.Size, attr.Type, attr.Normalized, _vdi.Stride, attr.Offset);
-            }
-        }
-    }
-
-    public static class VertexBuffer
-    {
-        public static VertexBuffer<T> Empty<T>(BufferTarget target, BufferUsageHint usage = BufferUsageHint.StaticDraw,
-            string name = null) where T : struct
-        {
-            if (typeof(T).GetCustomAttributes(typeof(VertexDataAttribute), false).Length == 0)
-            {
-                GLBuffer.Logger.Warn("Cannot use type {0} to create a VertexBuffer", typeof(T));
-                return null;
-            }
-
-            var wrapper = new GLBufferWrapper(target, usage);
-            var service = new VertexBuffer<T>(wrapper, name);
-
-            GLBuffer.Logger.Debug("Created {0}", service);
-
-            return service;
-        }
-
-        public static VertexBuffer<T> FromData<T>(T[] data, BufferTarget target,
             BufferUsageHint usage = BufferUsageHint.StaticDraw,
             string name = null) where T : struct
         {

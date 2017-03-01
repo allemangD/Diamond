@@ -65,29 +65,29 @@ namespace Diamond.Buffers
         public void EnableVertexPointers()
         {
             if (Program.Current == null)
-            {
-                throw new Exception("Cant render a mesh with no active shader."); // todo make an exception here.
-            }
+                throw new InvalidOperationException("Cant render a mesh with no active shader.");
 
             foreach (var attr in Pointers)
             {
-                if (!Program.Current.TryGetAttribute(attr.Name, out int loc)) continue;
-                GL.EnableVertexAttribArray(loc);
-                GL.VertexAttribDivisor(loc, Divisor);
+                var loc = Program.Current.AttributeLocation(attr.Name);
+                if (!loc.HasValue)
+                    continue;
+                GL.EnableVertexAttribArray((int) loc);
+                GL.VertexAttribDivisor((int) loc, Divisor);
             }
         }
 
         public void DisableVertexPointers()
         {
             if (Program.Current == null)
-            {
-                throw new Exception("Cant render a mesh with no active shader."); // todo make an exception here.
-            }
+                throw new InvalidOperationException("Cant render a mesh with no active shader.");
 
             foreach (var attr in Pointers)
             {
-                if (!Program.Current.TryGetAttribute(attr.Name, out int loc)) continue;
-                GL.DisableVertexAttribArray(loc);
+                var loc = Program.Current.AttributeLocation(attr.Name);
+                if (!loc.HasValue)
+                    continue;
+                GL.DisableVertexAttribArray((int) loc);
             }
         }
 
@@ -101,9 +101,7 @@ namespace Diamond.Buffers
             var vertexDataAttributes = typeof(T).GetCustomAttributes(typeof(VertexDataAttribute), false);
 
             if (vertexDataAttributes.Length != 1)
-            {
-                throw new Exception("Can't use type {typeof(T)} as mesh data."); // todo make an exception here.
-            }
+                return null;
 
             var vertdataattrib = (VertexDataAttribute) vertexDataAttributes[0];
             var divisor = vertdataattrib.Divisor;

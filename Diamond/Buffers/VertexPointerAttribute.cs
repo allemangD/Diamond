@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Runtime.InteropServices;
-using Diamond.Shaders;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Buffers
@@ -40,91 +36,19 @@ namespace Diamond.Buffers
         /// The offset of this attribute within each element
         /// Corresponds to the <code>offset</code> parameter to <code>glVertexAttribPointer</code>
         /// </summary>
-        public int Offset { get; set; } = 0;
+        // todo this, and other values, should be moved into a different type for use with VertexDataInfo.
+        // this class should just mark fields with their use - other types should manage binding those fields
+        public int Offset { get; internal set; } = 0;
 
+        /// <summary>
+        /// Mark a field with information about how to point a shader attribute to it
+        /// </summary>
+        /// <param name="name">The name of the attribute to point to this</param>
+        /// <param name="size">The number of elements to read from this field</param>
         public VertexPointerAttribute(string name, int size)
         {
             Name = name;
             Size = size;
-        }
-    }
-
-    public class VertexDataInfo
-    {
-        public readonly IReadOnlyCollection<VertexPointerAttribute> Pointers;
-        public readonly int Stride;
-        public readonly int Divisor;
-
-        private VertexDataInfo(IList<VertexPointerAttribute> pointers, int stride, int divisor)
-        {
-            Pointers = new ReadOnlyCollection<VertexPointerAttribute>(pointers);
-            Stride = stride;
-            Divisor = divisor;
-        }
-
-        public void EnableVertexPointers()
-        {
-            if (Program.Current == null)
-                throw new InvalidOperationException("Cant render a mesh with no active shader.");
-
-            foreach (var attr in Pointers)
-            {
-                var loc = Program.Current.AttributeLocation(attr.Name);
-                if (!loc.HasValue)
-                    continue;
-                GL.EnableVertexAttribArray((int) loc);
-                GL.VertexAttribDivisor((int) loc, Divisor);
-            }
-        }
-
-        public void DisableVertexPointers()
-        {
-            if (Program.Current == null)
-                throw new InvalidOperationException("Cant render a mesh with no active shader.");
-
-            foreach (var attr in Pointers)
-            {
-                var loc = Program.Current.AttributeLocation(attr.Name);
-                if (!loc.HasValue)
-                    continue;
-                GL.DisableVertexAttribArray((int) loc);
-            }
-        }
-
-        private static readonly Dictionary<Type, VertexDataInfo> attribCache =
-            new Dictionary<Type, VertexDataInfo>();
-
-        public static VertexDataInfo GetInfo<T>() where T : struct
-        {
-            if (attribCache.ContainsKey(typeof(T))) return attribCache[typeof(T)];
-
-            var vertexDataAttributes = typeof(T).GetCustomAttributes(typeof(VertexDataAttribute), false);
-
-            if (vertexDataAttributes.Length != 1)
-                return null;
-
-            var vertdataattrib = (VertexDataAttribute) vertexDataAttributes[0];
-            var divisor = vertdataattrib.Divisor;
-
-
-            var attribList = new List<VertexPointerAttribute>();
-            var stride = Marshal.SizeOf<T>();
-
-            foreach (var fieldInfo in typeof(T).GetFields())
-            {
-                var attrs = fieldInfo.GetCustomAttributes(typeof(VertexPointerAttribute), false);
-                if (attrs.Length == 0) continue;
-
-                var offset = (int) Marshal.OffsetOf<T>(fieldInfo.Name);
-                foreach (var attr in attrs)
-                {
-                    var vpa = (VertexPointerAttribute) attr;
-                    vpa.Offset = offset;
-                    attribList.Add(vpa);
-                }
-            }
-
-            return new VertexDataInfo(attribList, stride, divisor);
         }
     }
 }

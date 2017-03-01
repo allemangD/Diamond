@@ -71,7 +71,8 @@ namespace Diamond.Level
             var texturePaths = levelData["textures"]
                 .Select(path => (string) path)
                 .ToArray();
-            var textures = texturePaths.Select(path => Texture.FromBitmap(new Bitmap(Path.Combine(dir, path)))).ToArray();
+            var textures = texturePaths.Select(path => Texture.FromBitmap(new Bitmap(Path.Combine(dir, path))))
+                .ToArray();
             var textureMap = texturePaths.Select((path, i) => new {path = path, i = i})
                 .ToDictionary(v => v.path, v => v.i);
 
@@ -125,9 +126,17 @@ namespace Diamond.Level
             {
                 var pgm = tileGroup.Program;
                 pgm.Use();
-                GL.Uniform1(pgm.GetUniform("tex"), tileGroup.Texture);
+
+                var loc = pgm.UniformLocation("tex");
+
+                if (!loc.HasValue)
+                    continue;
+
+                GL.Uniform1((int)loc, tileGroup.Texture);
+
                 pgm.SetAttribPointers(_vertexBuffer);
                 pgm.SetAttribPointers(_tileBuffer);
+
                 tileGroup.Mesh.DrawInstanced(tileGroup.Tiles);
             }
         }

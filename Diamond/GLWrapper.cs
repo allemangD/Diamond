@@ -7,11 +7,11 @@ namespace Diamond
 {
     internal abstract class GLWrapper : IDisposable
     {
-        protected static Logger Logger = LogManager.GetCurrentClassLogger();
-
         public int Id { get; protected set; }
 
         public override string ToString() => $"{GetType().Name} {Id}";
+
+        public static explicit operator int(GLWrapper o) => o.Id;
 
         #region IDisposable
 
@@ -24,7 +24,11 @@ namespace Diamond
             if (_disposed)
                 return;
 
+            // no managed resources to dispose
+
             GLDelete();
+
+            Id = 0;
 
             _disposed = true;
         }
@@ -32,10 +36,14 @@ namespace Diamond
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~GLWrapper()
+        {
+            Dispose(false);
         }
 
         #endregion
-
-        public static explicit operator int(GLWrapper o) => o.Id;
     }
 }

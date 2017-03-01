@@ -9,6 +9,12 @@ namespace Diamond.Shaders
 {
     internal sealed class ShaderWrapper : GLWrapper
     {
+        internal ShaderWrapper(ShaderType shaderType)
+        {
+            Id = GL.CreateShader(shaderType);
+            ShaderType = shaderType;
+        }
+
         public readonly ShaderType ShaderType;
 
         public string Source
@@ -33,21 +39,9 @@ namespace Diamond.Shaders
 
         public string InfoLog => GL.GetShaderInfoLog(Id).Trim();
 
-        internal ShaderWrapper(ShaderType shaderType)
-        {
-            Id = GL.CreateShader(shaderType);
-            ShaderType = shaderType;
-        }
+        public void Compile() => GL.CompileShader(Id);
 
-        public override void GLDelete()
-        {
-            GL.DeleteShader(Id);
-        }
-
-        public void Compile()
-        {
-            GL.CompileShader(Id);
-        }
+        public override void GLDelete() => GL.DeleteShader(Id);
     }
 
     public class Shader : GLObject
@@ -55,40 +49,52 @@ namespace Diamond.Shaders
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private readonly ShaderWrapper _shader;
+        internal override GLWrapper Wrapper => _shader;
 
-        public override int Id => _shader.Id;
-        protected override GLWrapper Wrapper => _shader;
-
-        public string Name { get; }
         public string Source { get; }
+        public ShaderType Type { get; }
 
-        private Shader(ShaderWrapper shader, string source, string name)
+        private Shader(ShaderWrapper shader, string source, ShaderType type, string name)
         {
             _shader = shader;
-            Name = name;
             Source = source;
+            Type = type;
+            Name = name;
         }
 
+        public override string ToString() => $"{Type} \'{Name}\' ({Id})";
+
         #region Factory Methods
+
+        private static readonly Dictionary<string, ShaderType> _extensions = new Dictionary<string, ShaderType>
+        {
+            [".vs"] = ShaderType.VertexShader,
+            [".vert"] = ShaderType.VertexShader,
+            [".fs"] = ShaderType.VertexShader,
+            [".frag"] = ShaderType.VertexShader,
+        };
 
         public static Shader FromSource(string source, ShaderType type, string name = "Shader")
         {
             var wrapper = new ShaderWrapper(type);
-            Logger.Debug("Created {0} \'{1}\' {2}", type, name, wrapper.Id);
+            var service = new Shader(wrapper, source, type, name);
+
+            Logger.Debug("Created {0}", service);
 
             wrapper.Source = source;
             wrapper.Compile();
 
             if (!wrapper.Compiled)
             {
-                Logger.Warn("Failed to compile {0} \'{1}\' {2}", type, name, wrapper.Id);
-                Logger.Debug("InfoLog for {0} \'{1}\' {2}", type, name, wrapper.Id);
+                Logger.Warn("Failed to compile {0}", service);
+                Logger.Debug("InfoLog for {0}", service);
                 wrapper.Dispose();
                 return null;
             }
 
-            Logger.Debug("Successfully compiled {0} \'{1}\' {2}", type, name, wrapper.Id);
-            return new Shader(wrapper, source, name);
+            Logger.Debug("Successfully compiled {0}", service);
+
+            return service;
         }
 
         public static Shader FromFile(string path, ShaderType type)
@@ -114,25 +120,18 @@ namespace Diamond.Shaders
             var ext = Path.GetExtension(path);
             var name = Path.GetFileNameWithoutExtension(path);
 
-            var extensions = new Dictionary<string, ShaderType>
-            {
-                [".vs"] = ShaderType.VertexShader,
-                [".vert"] = ShaderType.VertexShader,
-                [".fs"] = ShaderType.VertexShader,
-                [".frag"] = ShaderType.VertexShader,
-            };
 
             if (ext != null)
-                if (!extensions.ContainsKey(ext))
+                if (!_extensions.ContainsKey(ext))
                     ext = Path.GetExtension(name);
 
-            if (ext == null || !extensions.ContainsKey(ext))
+            if (ext == null || !_extensions.ContainsKey(ext))
             {
                 Logger.Warn("Could not infer shader type from glsl file name {0}", path);
                 return null;
             }
 
-            var type = extensions[ext];
+            var type = _extensions[ext];
             return FromFile(path, type);
         }
 

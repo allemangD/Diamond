@@ -11,11 +11,13 @@ namespace Diamond
     public abstract class GLObject : IDisposable
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         private bool _disposed;
 
-        public abstract int Id { get; }
+        public string Name { get; protected set; } = "GLObject";
 
-        protected abstract GLWrapper Wrapper { get; }
+        internal abstract GLWrapper Wrapper { get; }
+        public int Id => Wrapper.Id;
 
         protected virtual void Dispose(bool disposing)
         {
@@ -25,7 +27,7 @@ namespace Diamond
             if (disposing)
             {
                 if (GraphicsContext.CurrentContext == null)
-                    Logger.Warn("No graphics context, cannot dispose GLObject: {0}", Wrapper);
+                    Logger.Error("No graphics context, cannot delete {0}", this);
                 else
                     Wrapper.Dispose();
             }

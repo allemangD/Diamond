@@ -1,7 +1,7 @@
 ﻿using Diamond.Buffers;
 using OpenTK;
 
-namespace Diamond.Level
+namespace Diamond.Util
 {
     [VertexData(Divisor = 1)]
     public struct TileData

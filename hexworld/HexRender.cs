@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using Diamond.Buffers;
-using Diamond.Level;
 using Diamond.Shaders;
 using Diamond.Textures;
 using Diamond.Util;

@@ -1,7 +1,4 @@
-﻿using System;
-using Newtonsoft.Json;
-
-namespace hexworld
+﻿namespace hexworld
 {
     public class Driver
     {

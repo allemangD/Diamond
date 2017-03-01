@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics.PerformanceData;
 using System.IO;
 using System.Linq;
 using Diamond.Buffers;
 using Diamond.Util;
-using Newtonsoft.Json;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 

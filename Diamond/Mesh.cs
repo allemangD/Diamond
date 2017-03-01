@@ -17,7 +17,7 @@ namespace Diamond
 
         public string Name { get; set; }
 
-        private static VertexDataInfo tVdi;
+        private static readonly VertexDataInfo tVdi;
         private static List<VertexPointerAttribute> attribs;
 
         static Mesh()

@@ -1,35 +1,23 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Drawing.Imaging;
+using NLog;
 using OpenTK.Graphics.OpenGL4;
 using PixelFormat = OpenTK.Graphics.OpenGL4.PixelFormat;
 
 namespace Diamond.Textures
 {
-    /// <summary>
-    /// Wrapper class for gl Textures.
-    /// </summary>
-    public class Texture : GLWrapper
+    internal class TextureWrapper : GLWrapper
     {
-        public TextureTarget Target;
-
-        public Texture(TextureTarget target = TextureTarget.Texture2D)
-            : base((uint) GL.GenTexture())
+        internal TextureWrapper(TextureTarget target)
         {
+            Id = GL.GenTexture();
             Target = target;
         }
 
-        protected override void Delete() => GL.DeleteTexture(Id);
+        public readonly TextureTarget Target;
 
-        public void Bind()
-        {
-            GL.BindTexture(Target, Id);
-        }
-
-        public void Bind(TextureUnit unit)
-        {
-            GL.ActiveTexture(unit);
-            Bind();
-        }
+        public void Bind() => GL.BindTexture(Target, Id);
 
         public void Bind(int unit)
         {
@@ -37,37 +25,55 @@ namespace Diamond.Textures
             Bind();
         }
 
-        public void Unbind()
+        public void TexParameter(TextureParameterName parameter, int value) => GL.TexParameter(Target, parameter,
+            value);
+
+        public void Image2D(PixelInternalFormat internalFormat, int width, int height, PixelFormat format,
+            PixelType type, IntPtr pixels) =>
+            GL.TexImage2D(Target, 0, internalFormat, width, height, 0, format, type, pixels);
+
+        public override void GLDelete() => GL.DeleteTexture(Id);
+    }
+
+    public class Texture : GLObject
+    {
+        internal static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+        private readonly TextureWrapper _texture;
+        internal override GLWrapper Wrapper => _texture;
+
+        internal Texture(TextureWrapper wrapper, string name)
         {
-            GL.BindTexture(Target, 0);
+            _texture = wrapper;
+            Name = name;
         }
 
-        public void Unbind(TextureUnit unit)
-        {
-            GL.ActiveTexture(unit);
-            Unbind();
-        }
+        public TextureTarget Target => _texture.Target;
 
-        public void Unbind(int unit)
-        {
-            GL.ActiveTexture(TextureUnit.Texture0 + unit);
-            Unbind();
-        }
+        public void Bind() => _texture.Bind();
+        public void Bind(int unit) => _texture.Bind(unit);
 
-        public static Texture FromBitmap(Bitmap bmp)
+        public override string ToString() => Name == null ? $"{Target} ({Id})" : $"{Target} \'{Name}\' ({Id})";
+
+        public static Texture FromBitmap(Bitmap bmp, string name = null)
         {
-            var tex = new Texture(TextureTarget.Texture2D);
-            tex.Bind();
-            GL.TexParameter(tex.Target, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.Nearest);
-            GL.TexParameter(tex.Target, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Nearest);
+            var wrapper= new TextureWrapper(TextureTarget.Texture2D);
+            var service = new Texture(wrapper, null);
+
+            Logger.Debug("Created texture {0}", service);
+
+            wrapper.Bind();
+            wrapper.TexParameter(TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            wrapper.TexParameter(TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+
             var data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly,
                 System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-            GL.TexImage2D(tex.Target, 0, PixelInternalFormat.Rgba, bmp.Width, bmp.Height, 0, PixelFormat.Bgra,
-                PixelType.UnsignedByte, data.Scan0);
+            wrapper.Image2D(PixelInternalFormat.Rgba, bmp.Width,bmp.Height,PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
             bmp.UnlockBits(data);
-            tex.Unbind();
-            return tex;
+
+            return service;
         }
+
 
         public static Texture FromFile(string path)
         {

@@ -91,7 +91,7 @@ namespace Diamond.Buffers
             }
         }
 
-        private static Dictionary<Type, VertexDataInfo> attribCache =
+        private static readonly Dictionary<Type, VertexDataInfo> attribCache =
             new Dictionary<Type, VertexDataInfo>();
 
         public static VertexDataInfo GetInfo<T>() where T : struct

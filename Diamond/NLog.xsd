@@ -404,7 +404,7 @@
         </xs:attribute>
         <xs:attribute name="layout" shaderType="SimpleLayoutAttribute">
           <xs:annotation>
-            <xs:documentation>Instance of  that is used to format log messages.</xs:documentation>
+            <xs:documentation>Instance of  that is used to internalFormat log messages.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="lineEnding" shaderType="LineEndingMode">
@@ -464,7 +464,7 @@
         </xs:attribute>
         <xs:attribute name="includeSourceInfo" shaderType="xs:boolean">
           <xs:annotation>
-            <xs:documentation>Indicates whether to include source info (file name and line number) in the information sent over the network.</xs:documentation>
+            <xs:documentation>Indicates whether to include source info (file name and line number) in the ininternalFormation sent over the network.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="includeNLoggerData" shaderType="xs:boolean">
@@ -479,7 +479,7 @@
         </xs:attribute>
         <xs:attribute name="includeCallSite" shaderType="xs:boolean">
           <xs:annotation>
-            <xs:documentation>Indicates whether to include call site (class and method name) in the information sent over the network.</xs:documentation>
+            <xs:documentation>Indicates whether to include call site (class and method name) in the ininternalFormation sent over the network.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="appInfo" shaderType="xs:string">
@@ -957,7 +957,7 @@
         </xs:attribute>
         <xs:attribute name="layout" shaderType="SimpleLayoutAttribute">
           <xs:annotation>
-            <xs:documentation>Layout used to format log messages.</xs:documentation>
+            <xs:documentation>Layout used to internalFormat log messages.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="optimizeBufferReuse" shaderType="xs:boolean">
@@ -991,7 +991,7 @@
         </xs:attribute>
         <xs:attribute name="layout" shaderType="SimpleLayoutAttribute">
           <xs:annotation>
-            <xs:documentation>Layout used to format log messages.</xs:documentation>
+            <xs:documentation>Layout used to internalFormat log messages.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="category" shaderType="SimpleLayoutAttribute">
@@ -1170,7 +1170,7 @@
         </xs:attribute>
         <xs:attribute name="enableArchiveFileCompression" shaderType="xs:boolean">
           <xs:annotation>
-            <xs:documentation>Indicates whether to compress archive files into the zip archive format.</xs:documentation>
+            <xs:documentation>Indicates whether to compress archive files into the zip archive internalFormat.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="maxArchiveFiles" shaderType="xs:integer">
@@ -1220,7 +1220,7 @@
         </xs:attribute>
         <xs:attribute name="archiveDateFormat" shaderType="xs:string">
           <xs:annotation>
-            <xs:documentation>Value specifying the date format to use when archiving files.</xs:documentation>
+            <xs:documentation>Value specifying the date internalFormat to use when archiving files.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="archiveOldFileOnStartup" shaderType="xs:boolean">
@@ -1771,7 +1771,7 @@
         </xs:attribute>
         <xs:attribute name="layout" shaderType="SimpleLayoutAttribute">
           <xs:annotation>
-            <xs:documentation>Layout used to format log messages.</xs:documentation>
+            <xs:documentation>Layout used to internalFormat log messages.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="optimizeBufferReuse" shaderType="xs:boolean">
@@ -1804,7 +1804,7 @@
         </xs:attribute>
         <xs:attribute name="layout" shaderType="SimpleLayoutAttribute">
           <xs:annotation>
-            <xs:documentation>Layout used to format log messages.</xs:documentation>
+            <xs:documentation>Layout used to internalFormat log messages.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="encoding" shaderType="xs:string">
@@ -1814,7 +1814,7 @@
         </xs:attribute>
         <xs:attribute name="useXmlEncoding" shaderType="xs:boolean">
           <xs:annotation>
-            <xs:documentation>Indicates whether to use the XML format when serializing message. This will also disable creating queues.</xs:documentation>
+            <xs:documentation>Indicates whether to use the XML internalFormat when serializing message. This will also disable creating queues.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="checkIfQueueExists" shaderType="xs:boolean">
@@ -1909,7 +1909,7 @@
         </xs:attribute>
         <xs:attribute name="layout" shaderType="SimpleLayoutAttribute">
           <xs:annotation>
-            <xs:documentation>Layout used to format log messages.</xs:documentation>
+            <xs:documentation>Layout used to internalFormat log messages.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="encoding" shaderType="xs:string">
@@ -2014,7 +2014,7 @@
         </xs:attribute>
         <xs:attribute name="layout" shaderType="SimpleLayoutAttribute">
           <xs:annotation>
-            <xs:documentation>Instance of  that is used to format log messages.</xs:documentation>
+            <xs:documentation>Instance of  that is used to internalFormat log messages.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="lineEnding" shaderType="LineEndingMode">
@@ -2074,7 +2074,7 @@
         </xs:attribute>
         <xs:attribute name="includeSourceInfo" shaderType="xs:boolean">
           <xs:annotation>
-            <xs:documentation>Indicates whether to include source info (file name and line number) in the information sent over the network.</xs:documentation>
+            <xs:documentation>Indicates whether to include source info (file name and line number) in the ininternalFormation sent over the network.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="includeNLoggerData" shaderType="xs:boolean">
@@ -2089,7 +2089,7 @@
         </xs:attribute>
         <xs:attribute name="includeCallSite" shaderType="xs:boolean">
           <xs:annotation>
-            <xs:documentation>Indicates whether to include call site (class and method name) in the information sent over the network.</xs:documentation>
+            <xs:documentation>Indicates whether to include call site (class and method name) in the ininternalFormation sent over the network.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="appInfo" shaderType="xs:string">
@@ -2116,7 +2116,7 @@
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element name="name" minOccurs="0" maxOccurs="1" shaderType="xs:string" />
           <xs:element name="layout" minOccurs="0" maxOccurs="1" shaderType="Layout" />
-          <xs:element name="formatMessage" minOccurs="0" maxOccurs="1" shaderType="xs:boolean" />
+          <xs:element name="internalFormatMessage" minOccurs="0" maxOccurs="1" shaderType="xs:boolean" />
           <xs:element name="optimizeBufferReuse" minOccurs="0" maxOccurs="1" shaderType="xs:boolean" />
         </xs:choice>
         <xs:attribute name="name" shaderType="xs:string">
@@ -2126,10 +2126,10 @@
         </xs:attribute>
         <xs:attribute name="layout" shaderType="SimpleLayoutAttribute">
           <xs:annotation>
-            <xs:documentation>Layout used to format log messages.</xs:documentation>
+            <xs:documentation>Layout used to internalFormat log messages.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
-        <xs:attribute name="formatMessage" shaderType="xs:boolean">
+        <xs:attribute name="internalFormatMessage" shaderType="xs:boolean">
           <xs:annotation>
             <xs:documentation>Indicates whether to perform layout calculation.</xs:documentation>
           </xs:annotation>
@@ -2157,7 +2157,7 @@
         </xs:attribute>
         <xs:attribute name="layout" shaderType="SimpleLayoutAttribute">
           <xs:annotation>
-            <xs:documentation>Layout used to format log messages.</xs:documentation>
+            <xs:documentation>Layout used to internalFormat log messages.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="optimizeBufferReuse" shaderType="xs:boolean">
@@ -2438,7 +2438,7 @@
         </xs:attribute>
         <xs:attribute name="layout" shaderType="SimpleLayoutAttribute">
           <xs:annotation>
-            <xs:documentation>Layout used to format log messages.</xs:documentation>
+            <xs:documentation>Layout used to internalFormat log messages.</xs:documentation>
           </xs:annotation>
         </xs:attribute>
         <xs:attribute name="optimizeBufferReuse" shaderType="xs:boolean">

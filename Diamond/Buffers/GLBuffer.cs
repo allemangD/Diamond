@@ -38,10 +38,10 @@ namespace Diamond.Buffers
 
     public class GLBuffer<T> : GLObject where T : struct
     {
-        private GLBufferWrapper _buffer;
+        private readonly GLBufferWrapper _buffer;
         internal override GLWrapper Wrapper => _buffer;
 
-        private int _size;
+        private readonly int _size;
 
         public BufferTarget Target => _buffer.Target;
 

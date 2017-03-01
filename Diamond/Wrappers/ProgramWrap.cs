@@ -3,9 +3,9 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Wrappers
 {
-    internal class ProgramWrapper : GLWrapper
+    internal class ProgramWrap : Wrapper
     {
-        internal ProgramWrapper()
+        internal ProgramWrap()
         {
             Id = GL.CreateProgram();
         }
@@ -23,7 +23,7 @@ namespace Diamond.Wrappers
         public void Link() => GL.LinkProgram(Id);
         public string InfoLog => GL.GetProgramInfoLog(Id).Trim();
 
-        public void Attach(ShaderWrapper shader) => GL.AttachShader(Id, shader.Id);
+        public void Attach(ShaderWrap shader) => GL.AttachShader(Id, shader.Id);
 
         public void Use() => GL.UseProgram(Id);
 

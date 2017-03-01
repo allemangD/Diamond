@@ -8,11 +8,11 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Buffers
 {
-    public class GLBuffer<T> : GLObject where T : struct
+    public class Buffer<T> : GLObject where T : struct
     {
-        private readonly GLBufferWrapper _buffer;
+        private readonly BufferWrap _buffer;
         private readonly VertexDataInfo _vdi;
-        internal override GLWrapper Wrapper => _buffer;
+        internal override Wrapper Wrapper => _buffer;
 
         private readonly int _size;
 
@@ -24,7 +24,7 @@ namespace Diamond.Buffers
             set => _buffer.Usage = value;
         }
 
-        internal GLBuffer(GLBufferWrapper buffer, string name)
+        internal Buffer(BufferWrap buffer, string name)
         {
             _buffer = buffer;
             Name = name;
@@ -63,18 +63,18 @@ namespace Diamond.Buffers
     {
         internal static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public static GLBuffer<T> Empty<T>(BufferTarget target, BufferUsageHint usage = BufferUsageHint.StaticDraw,
+        public static Buffer<T> Empty<T>(BufferTarget target, BufferUsageHint usage = BufferUsageHint.StaticDraw,
             string name = null) where T : struct
         {
-            var wrapper = new GLBufferWrapper(target, usage);
-            var service = new GLBuffer<T>(wrapper, name);
+            var wrapper = new BufferWrap(target, usage);
+            var service = new Buffer<T>(wrapper, name);
 
             Logger.Debug("Created {0}", service);
 
             return service;
         }
 
-        public static GLBuffer<T> FromData<T>(T[] data, BufferTarget target,
+        public static Buffer<T> FromData<T>(T[] data, BufferTarget target,
             BufferUsageHint usage = BufferUsageHint.StaticDraw,
             string name = null) where T : struct
         {

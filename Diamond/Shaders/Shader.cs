@@ -10,13 +10,13 @@ namespace Diamond.Shaders
     {
         internal static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private readonly ShaderWrapper _shader;
-        internal override GLWrapper Wrapper => _shader;
+        private readonly ShaderWrap _shader;
+        internal override Wrapper Wrapper => _shader;
 
         public string Source { get; }
         public ShaderType Type { get; }
 
-        internal Shader(ShaderWrapper shader, string source, ShaderType type, string name)
+        internal Shader(ShaderWrap shader, string source, ShaderType type, string name)
         {
             _shader = shader;
             Source = source;
@@ -38,7 +38,7 @@ namespace Diamond.Shaders
 
         public static Shader FromSource(string source, ShaderType type, string name = "Shader")
         {
-            var wrapper = new ShaderWrapper(type);
+            var wrapper = new ShaderWrap(type);
             var service = new Shader(wrapper, source, type, name);
 
             Logger.Debug("Created {0}", service);

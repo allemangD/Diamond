@@ -11,10 +11,10 @@ namespace Diamond.Textures
     {
         internal static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private readonly TextureWrapper _texture;
-        internal override GLWrapper Wrapper => _texture;
+        private readonly TextureWrap _texture;
+        internal override Wrapper Wrapper => _texture;
 
-        internal Texture(TextureWrapper wrapper, string name)
+        internal Texture(TextureWrap wrapper, string name)
         {
             _texture = wrapper;
             Name = name;
@@ -29,7 +29,7 @@ namespace Diamond.Textures
 
         public static Texture FromBitmap(Bitmap bmp, string name = null)
         {
-            var wrapper= new TextureWrapper(TextureTarget.Texture2D);
+            var wrapper= new TextureWrap(TextureTarget.Texture2D);
             var service = new Texture(wrapper, null);
 
             Logger.Debug("Created texture {0}", service);

@@ -4,15 +4,15 @@ using OpenTK.Graphics;
 
 namespace Diamond.Wrappers
 {
-    internal abstract class GLWrapper : IDisposable
+    internal abstract class Wrapper : IDisposable
     {
-        private static Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Logger = LogManager.GetLogger("OpenGL Wrapper");
 
         public int Id { get; protected set; }
 
         public override string ToString() => $"{GetType().Name} {Id}";
 
-        public static explicit operator int(GLWrapper o) => o.Id;
+        public static explicit operator int(Wrapper o) => o.Id;
 
         #region IDisposable
 
@@ -43,7 +43,7 @@ namespace Diamond.Wrappers
             GC.SuppressFinalize(this);
         }
 
-        ~GLWrapper()
+        ~Wrapper()
         {
             Dispose(false);
         }

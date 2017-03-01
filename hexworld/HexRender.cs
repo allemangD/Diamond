@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using Diamond;
 using Diamond.Buffers;
 using Diamond.Level;
 using Diamond.Shaders;
@@ -25,8 +24,8 @@ namespace hexworld
         private Texture _doorTex;
         private Texture _grassTex;
 
-        private GLBuffer<ObjVertex> _meshBuffer;
-        private GLBuffer<TileData> _tileBuffer;
+        private Buffer<ObjVertex> _meshBuffer;
+        private Buffer<TileData> _tileBuffer;
 
         protected override void OnClosed(EventArgs e)
         {
@@ -52,7 +51,6 @@ namespace hexworld
         private double _time;
 
         #endregion
-
 
         public HexRender(int width, int height)
             : base(width, height, new GraphicsMode(32, 24, 0, 0))

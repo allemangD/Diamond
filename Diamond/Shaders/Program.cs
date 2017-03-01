@@ -10,8 +10,8 @@ namespace Diamond.Shaders
     {
         internal static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        internal ProgramWrapper _program;
-        internal override GLWrapper Wrapper => _program;
+        internal ProgramWrap _program;
+        internal override Wrapper Wrapper => _program;
 
         public static Program Current { get; private set; }
 
@@ -19,7 +19,7 @@ namespace Diamond.Shaders
         private readonly Dictionary<string, int> _uniforms = new Dictionary<string, int>();
         private readonly Dictionary<string, int> _attributes = new Dictionary<string, int>();
 
-        internal Program(ProgramWrapper program, string name)
+        internal Program(ProgramWrap program, string name)
         {
             _program = program;
             Name = name;
@@ -74,7 +74,7 @@ namespace Diamond.Shaders
         private void Attach(Shader shader)
         {
             _shaders.Add(shader);
-            _program.Attach((ShaderWrapper) shader.Wrapper);
+            _program.Attach((ShaderWrap) shader.Wrapper);
         }
 
         public override string ToString() => $"Program \'{Name}\' ({Id})";
@@ -100,7 +100,7 @@ namespace Diamond.Shaders
                 return null;
             }
 
-            var wrapper = new ProgramWrapper();
+            var wrapper = new ProgramWrap();
             var service = new Program(wrapper, name);
 
             Logger.Debug("Created {0}", service);

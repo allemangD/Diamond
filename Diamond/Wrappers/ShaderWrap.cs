@@ -3,9 +3,9 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Wrappers
 {
-    internal sealed class ShaderWrapper : GLWrapper
+    internal sealed class ShaderWrap : Wrapper
     {
-        internal ShaderWrapper(ShaderType shaderType)
+        internal ShaderWrap(ShaderType shaderType)
         {
             Id = GL.CreateShader(shaderType);
             ShaderType = shaderType;

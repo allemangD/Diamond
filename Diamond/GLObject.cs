@@ -12,7 +12,7 @@ namespace Diamond
 
         public string Name { get; protected set; } = "GLObject";
 
-        internal abstract GLWrapper Wrapper { get; }
+        internal abstract Wrapper Wrapper { get; }
         public int Id => Wrapper.Id;
 
         protected virtual void Dispose(bool disposing)

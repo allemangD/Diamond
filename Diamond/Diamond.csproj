@@ -51,15 +51,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Buffers\GLBuffer.cs" />
-    <Compile Include="Wrappers\GLBufferWrapper.cs" />
+    <Compile Include="Buffers\Buffer.cs" />
+    <Compile Include="Wrappers\BufferWrap.cs" />
     <Compile Include="GLObject.cs" />
-    <Compile Include="Wrappers\ProgramWrapper.cs" />
-    <Compile Include="Wrappers\ShaderWrapper.cs" />
-    <Compile Include="Wrappers\TextureWrapper.cs" />
+    <Compile Include="Wrappers\ProgramWrap.cs" />
+    <Compile Include="Wrappers\ShaderWrap.cs" />
+    <Compile Include="Wrappers\TextureWrap.cs" />
     <Compile Include="Util\SubArray.cs" />
     <Compile Include="Buffers\VertexDataAttribute.cs" />
-    <Compile Include="Wrappers\GLWrapper.cs" />
+    <Compile Include="Wrappers\Wrapper.cs" />
     <Compile Include="Level\TileData.cs" />
     <Compile Include="Util\Mesh.cs" />
     <Compile Include="Util\ObjVertex.cs" />

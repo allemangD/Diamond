@@ -3,12 +3,12 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Wrappers
 {
-    internal class GLBufferWrapper : GLWrapper
+    internal class BufferWrap : Wrapper
     {
         public BufferTarget Target { get; }
         public BufferUsageHint Usage { get; set; }
 
-        internal GLBufferWrapper(BufferTarget target, BufferUsageHint usage)
+        internal BufferWrap(BufferTarget target, BufferUsageHint usage)
         {
             Id = GL.GenBuffer();
             Target = target;

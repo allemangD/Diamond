@@ -3,9 +3,9 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Wrappers
 {
-    internal class TextureWrapper : GLWrapper
+    internal class TextureWrap : Wrapper
     {
-        internal TextureWrapper(TextureTarget target)
+        internal TextureWrap(TextureTarget target)
         {
             Id = GL.GenTexture();
             Target = target;

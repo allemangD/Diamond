@@ -15,9 +15,7 @@ namespace Diamond.Wrappers
         /// The OpenGL name of this object
         /// </summary>
         public int Id { get; private set; }
-
-        public static explicit operator int(Wrapper o) => o.Id;
-
+        
         // Force wrapper types to generate an Id at creation time
         protected Wrapper(int id)
         {

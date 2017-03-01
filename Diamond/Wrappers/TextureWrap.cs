@@ -3,15 +3,31 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Wrappers
 {
-    internal class TextureWrap : Wrapper
+    internal sealed class TextureWrap : Wrapper
     {
+        #region Constructor, Delete()
+
         internal TextureWrap(TextureTarget target)
         {
             Id = GL.GenTexture();
             Target = target;
         }
 
-        public readonly TextureTarget Target;
+        public override void Delete() => GL.DeleteTexture(Id);
+
+        #endregion
+
+        #region Properties
+
+        #region Stored
+
+        public TextureTarget Target { get; }
+
+        #endregion
+
+        #endregion
+
+        #region Methods
 
         public void Bind() => GL.BindTexture(Target, Id);
 
@@ -28,6 +44,8 @@ namespace Diamond.Wrappers
             PixelType type, IntPtr pixels) =>
             GL.TexImage2D(Target, 0, internalFormat, width, height, 0, format, type, pixels);
 
-        public override void GLDelete() => GL.DeleteTexture(Id);
+        #endregion
+
+        public override string ToString() => $"Texture Wrapper - {Target} ({Id})";
     }
 }

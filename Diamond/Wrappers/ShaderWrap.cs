@@ -5,13 +5,25 @@ namespace Diamond.Wrappers
 {
     internal sealed class ShaderWrap : Wrapper
     {
+        #region Constructor, Delete()
+
         internal ShaderWrap(ShaderType shaderType)
         {
             Id = GL.CreateShader(shaderType);
             ShaderType = shaderType;
         }
 
-        public readonly ShaderType ShaderType;
+        public override void Delete() => GL.DeleteShader(Id);
+
+        #endregion
+
+        #region Properties
+
+        #region Stored
+
+        public ShaderType ShaderType { get; }
+
+        #endregion
 
         public string Source
         {
@@ -35,8 +47,14 @@ namespace Diamond.Wrappers
 
         public string InfoLog => GL.GetShaderInfoLog(Id);
 
+        #endregion
+
+        #region Methods
+
         public void Compile() => GL.CompileShader(Id);
 
-        public override void GLDelete() => GL.DeleteShader(Id);
+        #endregion
+
+        public override string ToString() => $"Shader Wrapper - {ShaderType} ({Id})";
     }
 }

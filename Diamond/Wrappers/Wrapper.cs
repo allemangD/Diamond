@@ -10,15 +10,11 @@ namespace Diamond.Wrappers
 
         public int Id { get; protected set; }
 
-        public override string ToString() => $"{GetType().Name} {Id}";
-
         public static explicit operator int(Wrapper o) => o.Id;
 
         #region IDisposable
 
-        public abstract void GLDelete();
-
-        private bool _disposed;
+        public abstract void Delete();
 
         protected virtual void Dispose(bool disposing)
         {
@@ -30,12 +26,16 @@ namespace Diamond.Wrappers
             if (GraphicsContext.CurrentContext == null)
                 Logger.Error("No graphics context, cannot delete {0}", this);
             else
-                GLDelete();
+                Delete();
 
             Id = 0;
 
             _disposed = true;
         }
+
+        #region Implemented
+
+        private bool _disposed;
 
         public void Dispose()
         {
@@ -49,5 +49,9 @@ namespace Diamond.Wrappers
         }
 
         #endregion
+
+        #endregion
+
+        public override string ToString() => $"{GetType().Name} {Id}";
     }
 }

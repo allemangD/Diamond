@@ -3,16 +3,20 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Wrappers
 {
-    internal class ProgramWrap : Wrapper
+    internal sealed class ProgramWrap : Wrapper
     {
+        #region Constructor, Delete()
+
         internal ProgramWrap()
         {
             Id = GL.CreateProgram();
         }
 
-        public int ActiveUniforms => Get(GetProgramParameterName.ActiveUniforms);
-        public int ActiveAttributes => Get(GetProgramParameterName.ActiveAttributes);
-        public bool Linked => Get(GetProgramParameterName.LinkStatus) != 0;
+        public override void Delete() => GL.DeleteProgram(Id);
+
+        #endregion
+
+        #region Properties
 
         public int Get(GetProgramParameterName parameter)
         {
@@ -20,10 +24,19 @@ namespace Diamond.Wrappers
             return res;
         }
 
-        public void Link() => GL.LinkProgram(Id);
+        public int ActiveUniforms => Get(GetProgramParameterName.ActiveUniforms);
+        public int ActiveAttributes => Get(GetProgramParameterName.ActiveAttributes);
+        public bool Linked => Get(GetProgramParameterName.LinkStatus) != 0;
+
         public string InfoLog => GL.GetProgramInfoLog(Id).Trim();
 
+        #endregion
+
+        #region Methods
+
         public void Attach(ShaderWrap shader) => GL.AttachShader(Id, shader.Id);
+
+        public void Link() => GL.LinkProgram(Id);
 
         public void Use() => GL.UseProgram(Id);
 
@@ -41,6 +54,8 @@ namespace Diamond.Wrappers
             return sb.ToString();
         }
 
-        public override void GLDelete() => GL.DeleteProgram(Id);
+        #endregion
+
+        public override string ToString() => $"Program Wrapper - ({Id})";
     }
 }

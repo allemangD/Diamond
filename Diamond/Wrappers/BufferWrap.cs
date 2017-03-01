@@ -3,10 +3,9 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Wrappers
 {
-    internal class BufferWrap : Wrapper
+    internal sealed class BufferWrap : Wrapper
     {
-        public BufferTarget Target { get; }
-        public BufferUsageHint Usage { get; set; }
+        #region Constructor, Delete()
 
         internal BufferWrap(BufferTarget target, BufferUsageHint usage)
         {
@@ -14,6 +13,19 @@ namespace Diamond.Wrappers
             Target = target;
             Usage = usage;
         }
+
+        public override void Delete() => GL.DeleteBuffer(Id);
+
+        #endregion
+
+        #region Properties
+
+        #region Stored
+
+        public BufferTarget Target { get; }
+        public BufferUsageHint Usage { get; set; }
+
+        #endregion
 
         public void Bind() => GL.BindBuffer(Target, Id);
 
@@ -29,6 +41,8 @@ namespace Diamond.Wrappers
             GL.BufferSubData(Target, (IntPtr) (offset * size), (IntPtr) (count * size), data);
         }
 
-        public override void GLDelete() => GL.DeleteBuffer(Id);
+        #endregion
+
+        public override string ToString() => $"Buffer Wrapper - {Target} ({Id})";
     }
 }

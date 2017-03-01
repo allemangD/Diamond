@@ -1,22 +1,27 @@
 ﻿#version 440
 
-in vec3 position;
-in vec3 glbpos;
-in vec2 uv;
-in vec3 normal;
+// Wavefront vertices
+in vec3 v;
+in vec2 vt;
+in vec3 vn;
 
-out vec2 vcoord;
-out float light;
+// Instance data
+in vec3 global_pos;
 
 uniform mat4 view;
 uniform mat4 proj;
 
+out vec2 vcoord;
+out float light;
+
 void main ()
 {
-	mat4 pv = proj * view;
-	vec3 pos = glbpos + position;
-	gl_Position = pv * vec4(pos, 1);
-	vcoord = uv;
+	mat4 proj_view = proj * view;
+	vec3 pos = global_pos + v;
+
+	gl_Position = proj_view * vec4(pos, 1);
+
+	vcoord = vt;
 	
-	light = dot(vec3(.2, .3, 1), normal) / 2 + .5;
+	light = dot(vec3(.2, .3, 1), vn) / 2 + .5;
 }

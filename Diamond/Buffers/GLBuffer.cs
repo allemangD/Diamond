@@ -5,7 +5,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Buffers
 {
-    public class GLBuffer<T> : GLObject where T : struct
+    public class GLBuffer<T> : GLWrapper where T : struct
     {
         public readonly BufferTarget Target;
         public readonly BufferUsageHint Usage;

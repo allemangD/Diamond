@@ -7,6 +7,7 @@ using System.Linq;
 using Diamond.Buffers;
 using Diamond.Shaders;
 using Diamond.Textures;
+using Diamond.Util;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OpenTK;
@@ -70,7 +71,7 @@ namespace Diamond.Level
             var texturePaths = levelData["textures"]
                 .Select(path => (string) path)
                 .ToArray();
-            var textures = texturePaths.Select(path => Texture.FromBitmap(new Bitmap(Path.Combine(dir, (string)path)))).ToArray();
+            var textures = texturePaths.Select(path => Texture.FromBitmap(new Bitmap(Path.Combine(dir, path)))).ToArray();
             var textureMap = texturePaths.Select((path, i) => new {path = path, i = i})
                 .ToDictionary(v => v.path, v => v.i);
 

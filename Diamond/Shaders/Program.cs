@@ -5,18 +5,18 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Shaders
 {
-    public class Program : GLObject
+    public class Program : GLWrapper
     {
         public static Program Current { get; private set; }
 
         private readonly Dictionary<string, int> _uniforms = new Dictionary<string, int>();
         private readonly Dictionary<string, int> _attributes = new Dictionary<string, int>();
 
-        public string InfoLog => GL.GetProgramInfoLog((int) Id).Trim();
+        public string InfoLog => GL.GetProgramInfoLog(Id).Trim();
 
         public Program()
-            : base((uint) GL.CreateProgram())
         {
+            Id = GL.CreateProgram();
         }
 
         protected override void Delete()
@@ -47,18 +47,18 @@ namespace Diamond.Shaders
 
             if (!Linked)
             {
-                Log.Warn("Failed to link Program {0}", Id);
-                Log.Debug("Program {0} InfoLog\n{1}", Id, InfoLog);
+                Logger.Warn("Failed to link Program {0}", Id);
+                Logger.Debug("Program {0} InfoLog\n{1}", Id, InfoLog);
                 return false;
             }
 
-            Log.Info("Successfully linked Program {0}", Id);
+            Logger.Info("Successfully linked Program {0}", Id);
 
             GL.GetProgram(Id, GetProgramParameterName.ActiveUniforms, out int uniformcount);
             for (var i = 0; i < uniformcount; i++)
             {
                 var sb = new StringBuilder(256);
-                GL.GetActiveUniformName((int) Id, i, sb.Capacity, out int length, sb);
+                GL.GetActiveUniformName(Id, i, sb.Capacity, out int length, sb);
                 _uniforms[sb.ToString()] = i;
             }
 
@@ -66,7 +66,7 @@ namespace Diamond.Shaders
             for (var i = 0; i < attributecount; i++)
             {
                 var sb = new StringBuilder(256);
-                GL.GetActiveAttrib((int) Id, i, sb.Capacity, out int length, out int size,
+                GL.GetActiveAttrib(Id, i, sb.Capacity, out int length, out int size,
                     out ActiveAttribType type, sb);
                 _attributes[sb.ToString()] = i;
             }
@@ -83,7 +83,7 @@ namespace Diamond.Shaders
         {
             if (TryGetUniform(name, out int id)) return id;
 
-            Log.Warn("Attempted to access uniform {0} on Program {1}", name, Id);
+            Logger.Warn("Attempted to access uniform {0} on Program {1}", name, Id);
             throw new ShaderException($"Shader Program {Id} does not contain uniform '{name}'");
         }
 
@@ -96,7 +96,7 @@ namespace Diamond.Shaders
         {
             if (TryGetAttribute(name, out int id)) return id;
 
-            Log.Warn("Attempted to access attribute {0} on Program {1}", name, Id);
+            Logger.Warn("Attempted to access attribute {0} on Program {1}", name, Id);
             throw new ShaderException($"Shader Program {Id} does not contain id '{name}'");
         }
 

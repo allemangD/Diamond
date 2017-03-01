@@ -52,9 +52,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Buffers\GLBuffer.cs" />
+    <Compile Include="GLObject.cs" />
     <Compile Include="Util\SubArray.cs" />
     <Compile Include="Buffers\VertexDataAttribute.cs" />
-    <Compile Include="GLObject.cs" />
+    <Compile Include="GLWrapper.cs" />
     <Compile Include="Level\Level.cs" />
     <Compile Include="Level\TileData.cs" />
     <Compile Include="Level\TileGroup.cs" />

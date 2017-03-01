@@ -1,66 +1,47 @@
 ﻿using System;
-using System.Diagnostics;
-using OpenTK.Graphics;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using NLog;
+using OpenTK.Graphics;
 
 namespace Diamond
 {
-    /// <summary>
-    /// Parent class for all gl Object wrappers. 
-    /// </summary>
     public abstract class GLObject : IDisposable
     {
-        /// <summary>
-        /// Logger for this class
-        /// </summary>
-        protected Logger Log { get; }
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private bool _disposed;
 
-        /// <summary>
-        /// The name of this object
-        /// </summary>
-        public uint Id { get; protected set; }
+        public abstract int Id { get; }
 
-        /// <summary>
-        /// Force all <code>GLObject</code>s to define their name.
-        /// </summary>
-        /// <param name="id">The name of this object</param>
-        protected GLObject(uint id)
+        protected abstract GLWrapper Wrapper { get; }
+
+        protected virtual void Dispose(bool disposing)
         {
-            Id = id;
-
-            Log = LogManager.GetLogger(GetType().FullName);
-            Log.Trace("Created {0}", this);
-        }
-
-        /// <summary>
-        /// Called to free the name of this object. Usually corresponds to <code>glDelete*</code>.
-        /// </summary>
-        protected abstract void Delete();
-
-        /// <summary>
-        /// Free the name of this object
-        /// </summary>
-        public void Dispose()
-        {
-            if (GraphicsContext.CurrentContext == null)
-            {
-                Log.Warn("No current context, assuming {0} is disposed.", this);
+            if (_disposed)
                 return;
+
+            if (disposing)
+            {
+                if (GraphicsContext.CurrentContext == null)
+                    Logger.Warn("No graphics context, cannot dispose GLObject: {0}", Wrapper);
+                else
+                    Wrapper.Dispose();
             }
 
-            Delete();
-            Log.Trace("Disposed {0}", this);
+            _disposed = true;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         ~GLObject()
         {
-            Dispose();
+            Dispose(false);
         }
-
-        public override string ToString() => $"{GetType().Name} {Id}";
-
-        public static explicit operator uint(GLObject o) => o.Id;
-        public static explicit operator int(GLObject o) => (int) o.Id;
     }
 }

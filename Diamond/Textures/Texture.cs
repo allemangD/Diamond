@@ -8,7 +8,7 @@ namespace Diamond.Textures
     /// <summary>
     /// Wrapper class for gl Textures.
     /// </summary>
-    public class Texture : GLObject
+    public class Texture : GLWrapper
     {
         public TextureTarget Target;
 

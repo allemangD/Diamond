@@ -28,7 +28,7 @@ namespace hexworld
         private Buffer<ObjVertex> _meshBuffer;
         private Buffer<TileData> _tileBuffer;
 
-        private RenderGroup _renderGroup;
+        private RenderGroup<TileData, ObjVertex> _renderGroup;
 
         protected override void OnClosed(EventArgs e)
         {
@@ -105,15 +105,15 @@ namespace hexworld
 
             _camera = new Camera();
 
-            _renderGroup = new RenderGroup()
+            _renderGroup = new RenderGroup<TileData, ObjVertex>()
             {
                 Camera = _camera,
-                Mesh = _cubeMesh,
-                MeshBuffer = _meshBuffer,
+                Vertices = _cubeMesh,
+                VertexBuffer = _meshBuffer,
                 Program = _texPgm,
                 Texture = _grassTex,
-                TileBuffer = _tileBuffer,
-                Tiles = _floorTiles
+                InstanceBuffer = _tileBuffer,
+                Instances = _floorTiles
             };
         }
 

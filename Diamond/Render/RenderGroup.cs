@@ -1,5 +1,4 @@
-﻿using System;
-using Diamond.Buffers;
+﻿using Diamond.Buffers;
 using Diamond.Shaders;
 using Diamond.Textures;
 using Diamond.Util;
@@ -7,25 +6,55 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Render
 {
-    public class RenderGroup
+    /// <summary>
+    /// Manage a group of buffers, ranges, and uniforms to render
+    /// </summary>
+    /// <typeparam name="TInstance">The type of data to use as Instance information</typeparam>
+    /// <typeparam name="TVertex">The type of data to use as Vertex information</typeparam>
+    public class RenderGroup<TInstance, TVertex> where TInstance : struct where TVertex : struct
     {
-        public SubArray<TileData> Tiles;
-        public Mesh<ObjVertex> Mesh;
+        /// <summary>
+        /// The range of instance values to render
+        /// </summary>
+        public SubArray<TInstance> Instances;
+        /// <summary>
+        /// The range of vertex values to render
+        /// </summary>
+        public Mesh<TVertex> Vertices;
 
-        public Buffer<TileData> TileBuffer;
-        public Buffer<ObjVertex> MeshBuffer;
+        /// <summary>
+        /// The buffer to use for instance data
+        /// </summary>
+        public Buffer<TInstance> InstanceBuffer;
+        /// <summary>
+        /// The buffer to use for instance data
+        /// </summary>
+        public Buffer<TVertex> VertexBuffer;
 
+        /// <summary>
+        /// The program to use to render this Rendergroup
+        /// </summary>
         public Program Program;
+
+        /// <summary>
+        /// The Texture to use for this Rendergroup
+        /// </summary>
         public Texture Texture;
 
+        /// <summary>
+        /// View and Projection information for this Rendergroup
+        /// </summary>
         public Camera Camera;
 
+        /// <summary>
+        /// Draw this rendergroup using the predefined settings.
+        /// </summary>
         public void Draw()
         {
             Program.Use();
 
-            TileBuffer.PointTo(Program);
-            MeshBuffer.PointTo(Program);
+            InstanceBuffer.PointTo(Program);
+            VertexBuffer.PointTo(Program);
 
             Texture.Bind(0);
 
@@ -40,7 +69,7 @@ namespace Diamond.Render
             if (projLoc.HasValue)
                 GL.UniformMatrix4(projLoc.Value, false, ref Camera.Projection);
 
-            Mesh.DrawInstanced(Tiles);
+            Vertices.DrawInstanced(Instances);
         }
     }
 }

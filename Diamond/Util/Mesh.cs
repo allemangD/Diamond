@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Diamond.Buffers;
+using NLog;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
@@ -9,6 +10,8 @@ namespace Diamond.Util
 {
     public class Mesh<T> where T : struct
     {
+        private static readonly Logger Logger = LogManager.GetLogger("Mesh");
+
         public SubArray<T> Vertices;
         public PrimitiveType Primitive;
 
@@ -44,6 +47,11 @@ namespace Diamond.Util
         public void DrawInstanced<TI>(SubArray<TI> instanceArray) where TI : struct
         {
             var tiVdi = VertexDataInfo.GetInfo<TI>();
+
+            if (tiVdi.Divisor == 0)
+            {
+                Logger.Error("Cannot render mesh with instances of type {0} - Divisor is 0", typeof(TI).Name);
+            }
 
             tVdi.EnableVertexPointers();
             tiVdi.EnableVertexPointers();

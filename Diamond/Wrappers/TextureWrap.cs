@@ -73,6 +73,6 @@ namespace Diamond.Wrappers
 
         #endregion
 
-        public override string ToString() => $"Texture Wrapper - {Target} ({Id})";
+        public override string ToString() => $"{Target} ({Id})";
     }
 }

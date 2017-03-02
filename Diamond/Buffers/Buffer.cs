@@ -14,16 +14,15 @@ namespace Diamond.Buffers
     /// <typeparam name="T">The type of data used for this buffer</typeparam>
     public class Buffer<T> : GLObject where T : struct
     {
-        private readonly BufferWrap _buffer;
+        internal readonly BufferWrap Wrapper;
         private readonly VertexDataInfo _vdi;
-        internal override Wrapper Wrapper => _buffer;
 
         private readonly int _size;
 
         /// <summary>
         /// The target for this buffer; its type
         /// </summary>
-        public BufferTarget Target => _buffer.Target;
+        public BufferTarget Target => Wrapper.Target;
 
         /// <summary>
         /// The usage hint for this buffer. Use StaticDraw for one-time uploads to 
@@ -31,13 +30,13 @@ namespace Diamond.Buffers
         /// </summary>
         public BufferUsageHint Usage
         {
-            get => _buffer.Usage;
-            set => _buffer.Usage = value;
+            get => Wrapper.Usage;
+            set => Wrapper.Usage = value;
         }
 
-        internal Buffer(BufferWrap buffer, string name)
+        internal Buffer(BufferWrap wrapper, string name)
         {
-            _buffer = buffer;
+            Wrapper = wrapper;
             Name = name;
             _size = Marshal.SizeOf<T>();
             _vdi = VertexDataInfo.GetInfo<T>();
@@ -47,7 +46,7 @@ namespace Diamond.Buffers
         /// Upload data to this buffer
         /// </summary>
         /// <param name="data">The data to upload</param>
-        public void Data(T[] data) => _buffer.Data(_size, data);
+        public void Data(T[] data) => Wrapper.Data(_size, data);
 
         /// <summary>
         /// Upload a range of data to this buffer
@@ -55,7 +54,7 @@ namespace Diamond.Buffers
         /// <param name="offset">The range offset</param>
         /// <param name="count">The range length</param>
         /// <param name="data">The data to upload, offset and length apply to both this and the target</param>
-        public void Data(int offset, int count, T[] data) => _buffer.SubData(_size, offset, count, data);
+        public void Data(int offset, int count, T[] data) => Wrapper.SubData(_size, offset, count, data);
 
         /// <summary>
         /// Upload a range of data to this buffer
@@ -77,7 +76,7 @@ namespace Diamond.Buffers
                 throw exception;
             }
 
-            _buffer.Bind();
+            Wrapper.Bind();
             foreach (var attr in _vdi.Pointers)
             {
                 var loc = program.AttributeLocation(attr.Name);
@@ -87,8 +86,16 @@ namespace Diamond.Buffers
         }
 
         public override string ToString() => Name == null
-            ? $"Buffer<{typeof(T).Name}> {Target} ({Id})"
-            : $"Buffer<{typeof(T).Name}> {Target} {Name} ({Id})";
+            ? $"Buffer<{typeof(T).Name}> {Wrapper}"
+            : $"Buffer<{typeof(T).Name}> {Wrapper} \'{Name}\'";
+
+        public override void Dispose()
+        {
+            Logger.Debug("Disposing {0}", this);
+            Wrapper.Dispose();
+        }
+
+        #region Factory Methods
 
         /// <summary>
         /// Create an empty buffer of this type
@@ -123,6 +130,8 @@ namespace Diamond.Buffers
 
             return service;
         }
+
+        #endregion
     }
 
     /// <summary>

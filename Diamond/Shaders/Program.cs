@@ -11,8 +11,7 @@ namespace Diamond.Shaders
     /// </summary>
     public class Program : GLObject
     {
-        private readonly ProgramWrap _program;
-        internal override Wrapper Wrapper => _program;
+        internal readonly ProgramWrap Wrapper;
 
         /// <summary>
         /// The currently active program. Manually invoking glUseProgram will break this.
@@ -24,9 +23,9 @@ namespace Diamond.Shaders
 
         private readonly Dictionary<string, int> _attributes = new Dictionary<string, int>();
 
-        internal Program(ProgramWrap program, string name)
+        internal Program(ProgramWrap wrapper, string name)
         {
-            _program = program;
+            Wrapper = wrapper;
             Name = name;
         }
 
@@ -59,7 +58,7 @@ namespace Diamond.Shaders
         /// </summary>
         public void Use()
         {
-            GL.UseProgram(Id);
+            Wrapper.Use();
             Current = this;
         }
 
@@ -84,16 +83,16 @@ namespace Diamond.Shaders
             _uniforms.Clear();
             _attributes.Clear();
 
-            _program.Link();
+            Wrapper.Link();
 
-            if (!_program.Linked)
+            if (!Wrapper.Linked)
                 return false;
 
-            for (var i = 0; i < _program.ActiveUniforms; i++)
-                _uniforms[_program.UniformName(i)] = i;
+            for (var i = 0; i < Wrapper.ActiveUniforms; i++)
+                _uniforms[Wrapper.UniformName(i)] = i;
 
-            for (var i = 0; i < _program.ActiveAttributes; i++)
-                _attributes[_program.AttributeName(i)] = i;
+            for (var i = 0; i < Wrapper.ActiveAttributes; i++)
+                _attributes[Wrapper.AttributeName(i)] = i;
 
             return true;
         }
@@ -104,10 +103,16 @@ namespace Diamond.Shaders
         /// <param name="shader">The shader to attach</param>
         private void Attach(Shader shader)
         {
-            _program.Attach((ShaderWrap) shader.Wrapper);
+            Wrapper.Attach(shader.Wrapper);
         }
 
-        public override string ToString() => $"Program \'{Name}\' ({Id})";
+        public override string ToString() => $"Program {Wrapper} \'{Name}\'";
+
+        public override void Dispose()
+        {
+            Logger.Debug("Disposing {0}", this);
+            Wrapper.Dispose();
+        }
 
         #region Factory Methods
 
@@ -157,7 +162,7 @@ namespace Diamond.Shaders
             {
                 Logger.Warn("Failed to link {0}", service);
                 Logger.Debug("InfoLog for {0}", service);
-                wrapper.Dispose();
+                service.Dispose();
                 return null;
             }
 

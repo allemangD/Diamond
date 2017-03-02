@@ -81,6 +81,6 @@ namespace Diamond.Wrappers
 
         #endregion
 
-        public override string ToString() => $"Shader Wrapper - {ShaderType} ({Id})";
+        public override string ToString() => $"{ShaderType} ({Id})";
     }
 }

@@ -98,6 +98,6 @@ namespace Diamond.Wrappers
 
         #endregion
 
-        public override string ToString() => $"Program Wrapper - ({Id})";
+        public override string ToString() => $"Program ({Id})";
     }
 }

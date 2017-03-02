@@ -11,8 +11,7 @@ namespace Diamond.Shaders
     /// </summary>
     public class Shader : GLObject
     {
-        private readonly ShaderWrap _shader;
-        internal override Wrapper Wrapper => _shader;
+        internal readonly ShaderWrap Wrapper;
 
         /// <summary>
         /// The source used to create this shader
@@ -24,15 +23,23 @@ namespace Diamond.Shaders
         /// </summary>
         public ShaderType Type { get; }
 
-        internal Shader(ShaderWrap shader, string source, ShaderType type, string name)
+        internal Shader(ShaderWrap wrapper, string source, ShaderType type, string name)
         {
-            _shader = shader;
+            Wrapper = wrapper;
             Source = source;
             Type = type;
             Name = name;
         }
 
-        public override string ToString() => $"{Type} \'{Name}\' ({Id})";
+        public override string ToString() => Name == null
+            ? $"{Wrapper}"
+            : $"{Wrapper} \'{Name}\'";
+
+        public override void Dispose()
+        {
+            Logger.Debug("Disposing {0}", this);
+            Wrapper.Dispose();
+        }
 
         #region Factory Methods
 
@@ -68,7 +75,7 @@ namespace Diamond.Shaders
             {
                 Logger.Warn("Failed to compile {0}", service);
                 Logger.Debug("InfoLog for {0}", service);
-                wrapper.Dispose();
+                service.Dispose();
                 return null;
             }
 

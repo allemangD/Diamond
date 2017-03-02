@@ -20,48 +20,8 @@ namespace Diamond
         public string Name { get; protected set; } = "GLObject";
 
         /// <summary>
-        /// Underlying managed wrapper to this OpenGL object
+        /// Delegate Dispose to underlying wrapper class
         /// </summary>
-        internal abstract Wrapper Wrapper { get; }
-
-        /// <summary>
-        /// The OpenGL name of this object
-        /// </summary>
-        public int Id => Wrapper.Id;
-
-        #region IDisposable
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed)
-                return;
-
-            if (disposing)
-            {
-                Logger.Debug("Disposing {0}", this);
-                Wrapper.Dispose();
-            }
-
-            _disposed = true;
-        }
-
-        #region Implemented
-
-        private bool _disposed;
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        ~GLObject()
-        {
-            Dispose(false);
-        }
-
-        #endregion
-
-        #endregion
+        public abstract void Dispose();
     }
 }

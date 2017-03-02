@@ -22,6 +22,8 @@ namespace Diamond.Wrappers
             Id = id;
         }
 
+        public override string ToString() => $"{GetType().Name} {Id}";
+
         #region IDisposable
 
         /// <summary>
@@ -64,7 +66,5 @@ namespace Diamond.Wrappers
         #endregion
 
         #endregion
-
-        public override string ToString() => $"{GetType().Name} {Id}";
     }
 }

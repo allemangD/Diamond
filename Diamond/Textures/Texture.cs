@@ -13,26 +13,33 @@ namespace Diamond.Textures
     /// </summary>
     public class Texture : GLObject
     {
-        private readonly TextureWrap _texture;
-        internal override Wrapper Wrapper => _texture;
+        internal readonly TextureWrap Wrapper;
 
         internal Texture(TextureWrap wrapper, string name)
         {
-            _texture = wrapper;
+            Wrapper = wrapper;
             Name = name;
         }
 
         /// <summary>
         /// This textures target; how it is used
         /// </summary>
-        public TextureTarget Target => _texture.Target;
+        public TextureTarget Target => Wrapper.Target;
 
         /// <summary>
         /// Bind this texture to a particular unit
         /// </summary>
-        public void Bind(int unit) => _texture.Bind(unit);
+        public void Bind(int unit) => Wrapper.Bind(unit);
 
-        public override string ToString() => Name == null ? $"{Target} ({Id})" : $"{Target} \'{Name}\' ({Id})";
+        public override string ToString() => Name == null
+            ? $"{Wrapper}"
+            : $"{Wrapper} \'{Name}\'";
+
+        public override void Dispose()
+        {
+            Logger.Debug("Disposing {0}", this);
+            Wrapper.Dispose();
+        }
 
         #region Factory Methods
 

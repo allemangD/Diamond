@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Diamond.Buffers;
+using Diamond.Render;
 using Diamond.Shaders;
 using Diamond.Textures;
 using Diamond.Util;
@@ -27,6 +28,8 @@ namespace hexworld
         private Buffer<ObjVertex> _meshBuffer;
         private Buffer<TileData> _tileBuffer;
 
+        private RenderGroup _renderGroup;
+
         protected override void OnClosed(EventArgs e)
         {
             _texPgm?.Dispose();
@@ -45,8 +48,7 @@ namespace hexworld
 
         private Mesh<ObjVertex> _cubeMesh;
 
-        private Matrix4 _view;
-        private Matrix4 _proj;
+        private Camera _camera;
 
         private double _time;
 
@@ -100,6 +102,19 @@ namespace hexworld
                 BufferUsageHint.DynamicDraw, "tile");
             _meshBuffer = Buffer.FromData(cubeMesh.Vertices.ToArray(), BufferTarget.ArrayBuffer,
                 BufferUsageHint.StaticDraw, "mesh");
+
+            _camera = new Camera();
+
+            _renderGroup = new RenderGroup()
+            {
+                Camera = _camera,
+                Mesh = _cubeMesh,
+                MeshBuffer = _meshBuffer,
+                Program = _texPgm,
+                Texture = _grassTex,
+                TileBuffer = _tileBuffer,
+                Tiles = _floorTiles
+            };
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
@@ -108,9 +123,9 @@ namespace hexworld
 
             _time += e.Time;
 
-            _view = Matrix4.CreateRotationZ((float) _time / 3) *
-                    Matrix4.LookAt(10 * Vector3.One, Vector3.Zero, Vector3.UnitZ);
-            _proj = Matrix4.CreateOrthographic(Width / 100f, Height / 100f, -100, 100);
+            _camera.View = Matrix4.CreateRotationZ((float) _time / 3) *
+                           Matrix4.LookAt(10 * Vector3.One, Vector3.Zero, Vector3.UnitZ);
+            _camera.Projection = Matrix4.CreateOrthographic(Width / 100f, Height / 100f, -100, 100);
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
@@ -127,29 +142,7 @@ namespace hexworld
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
-
-            if (_texPgm != null)
-            {
-                _texPgm.Use();
-
-                _meshBuffer.PointTo(_texPgm);
-                _tileBuffer.PointTo(_texPgm);
-
-                _grassTex.Bind(0);
-
-                var texLoc = _texPgm.UniformLocation("tex");
-                var viewLoc = _texPgm.UniformLocation("view");
-                var projLoc = _texPgm.UniformLocation("proj");
-
-                if (texLoc.HasValue)
-                    GL.Uniform1(texLoc.Value, 0);
-                if (viewLoc.HasValue)
-                    GL.UniformMatrix4(viewLoc.Value, false, ref _view);
-                if (projLoc.HasValue)
-                    GL.UniformMatrix4(projLoc.Value, false, ref _proj);
-
-                _cubeMesh.DrawInstanced(_floorTiles);
-            }
+            _renderGroup.Draw();
 
             SwapBuffers();
         }

@@ -53,6 +53,8 @@
   <ItemGroup>
     <Compile Include="Buffers\Buffer.cs" />
     <Compile Include="Buffers\VertexDataInfo.cs" />
+    <Compile Include="Render\Camera.cs" />
+    <Compile Include="Render\RenderGroup.cs" />
     <Compile Include="Wrappers\BufferWrap.cs" />
     <Compile Include="GLObject.cs" />
     <Compile Include="Wrappers\ProgramWrap.cs" />

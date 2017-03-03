@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Diamond.Buffers;
@@ -43,10 +44,10 @@ namespace hexworld
 
         #endregion
 
-        private SubArray<TileData> _floorTiles;
-        private SubArray<TileData> _doorTiles;
+        private VertexBuffer<TileData> _floorTiles;
+        private VertexBuffer<TileData> _doorTiles;
 
-        private Mesh<ObjVertex> _cubeMesh;
+        private VertexBuffer<ObjVertex> _cubeMesh;
 
         private Camera _camera;
 
@@ -86,34 +87,29 @@ namespace hexworld
                 .Select(arr => new SubArray<TileData>(arr))
                 .ToArray();
 
-            _doorTiles = allTiles[0];
-            _floorTiles = allTiles[1];
+            var tileVbo = VertexBuffer.FromArrays(allTiles, 0, "tiles");
+
+            _doorTiles = tileVbo[0];
+            _floorTiles = tileVbo[1];
 
             var cubeMesh = json["models"]
                 .Select(path => (string) path)
                 .Select(path => Path.Combine(dir, path))
-                .Select(path => Mesh.FromObj(path, false))
+                .Select(VertexBuffer.FromWavefront)
                 .SelectMany(meshes => meshes)
                 .First(mesh => mesh.Name == "Cube");
 
             _cubeMesh = cubeMesh;
-
-            _tileBuffer = Buffer.FromData(SubArray.Join(_doorTiles, _floorTiles), BufferTarget.ArrayBuffer,
-                BufferUsageHint.DynamicDraw, "tile");
-            _meshBuffer = Buffer.FromData(cubeMesh.Vertices.ToArray(), BufferTarget.ArrayBuffer,
-                BufferUsageHint.StaticDraw, "mesh");
 
             _camera = new Camera();
 
             _renderGroup = new RenderGroup<TileData, ObjVertex>()
             {
                 Camera = _camera,
-                Vertices = _cubeMesh,
-                VertexBuffer = _meshBuffer,
+                Instance = _floorTiles,
                 Program = _texPgm,
-                Texture = _grassTex,
-                InstanceBuffer = _tileBuffer,
-                Instances = _floorTiles
+                Vertices = _cubeMesh,
+                Texture = _grassTex
             };
         }
 

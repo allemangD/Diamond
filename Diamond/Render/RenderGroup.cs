@@ -14,22 +14,14 @@ namespace Diamond.Render
     public class RenderGroup<TInstance, TVertex> where TInstance : struct where TVertex : struct
     {
         /// <summary>
-        /// The range of instance values to render
-        /// </summary>
-        public SubArray<TInstance> Instances;
-        /// <summary>
         /// The range of vertex values to render
         /// </summary>
-        public Mesh<TVertex> Vertices;
+        public VertexBuffer<TVertex> Vertices;
 
         /// <summary>
-        /// The buffer to use for instance data
+        /// The range of instance values to render
         /// </summary>
-        public Buffer<TInstance> InstanceBuffer;
-        /// <summary>
-        /// The buffer to use for instance data
-        /// </summary>
-        public Buffer<TVertex> VertexBuffer;
+        public VertexBuffer<TInstance> Instance;
 
         /// <summary>
         /// The program to use to render this Rendergroup
@@ -53,9 +45,6 @@ namespace Diamond.Render
         {
             Program.Use();
 
-            InstanceBuffer.PointTo(Program);
-            VertexBuffer.PointTo(Program);
-
             Texture.Bind(0);
 
             var texLoc = Program.UniformLocation("tex");
@@ -69,7 +58,10 @@ namespace Diamond.Render
             if (projLoc.HasValue)
                 GL.UniformMatrix4(projLoc.Value, false, ref Camera.Projection);
 
-            Vertices.DrawInstanced(Instances);
+            if (Instance != null)
+                Vertices.DrawInstanced(Instance);
+            else
+                Vertices.Draw();
         }
     }
 }

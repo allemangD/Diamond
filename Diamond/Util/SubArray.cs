@@ -123,58 +123,58 @@ namespace Diamond.Util
     /// </summary>
     public static class SubArray
     {
-        /// <summary>
-        /// Make multiple subArrays cover the same array
-        /// </summary>
-        /// <typeparam name="T">The element type</typeparam>
-        /// <param name="subArrays">The SubArrays to join</param>
-        /// <returns>The new underlying array</returns>
-        public static T[] Join<T>(params SubArray<T>[] subArrays) => Join((IEnumerable<SubArray<T>>) subArrays);
-
-        /// <summary>
-        /// Make multiple subArrays cover the same array
-        /// </summary>
-        /// <typeparam name="T">The element type</typeparam>
-        /// <param name="subArrays">The SubArrays to join</param>
-        /// <returns>The new underlying array</returns>
-        public static T[] Join<T>(IEnumerable<SubArray<T>> subArrays)
-        {
-            // todo: this breaks in the case: Join(a, b); Join(b, c)
-            // possibly create "multiarray" class or similar which would manage these operations
-            // and prevent this case from arising
-
-            var subArrList = subArrays.ToList(); // prevent multiple enumeration
-
-            HashSet<T[]> uniqueArrays = new HashSet<T[]>();
-            foreach (var subArray in subArrList)
-            {
-                uniqueArrays.Add(subArray.Array);
-            }
-
-            if (uniqueArrays.Count == 0) return new T[0];
-            if (uniqueArrays.Count == 1) return uniqueArrays.ToArray()[0];
-
-            var length = 0;
-            var offsets = new Dictionary<T[], int>();
-            foreach (var uniqueArray in uniqueArrays)
-            {
-                offsets[uniqueArray] = length;
-                length += uniqueArray.Length;
-            }
-
-            var array = new T[length];
-            foreach (var uniqueArray in uniqueArrays)
-            {
-                System.Array.ConstrainedCopy(uniqueArray, 0, array, offsets[uniqueArray], uniqueArray.Length);
-            }
-
-            foreach (var subArray in subArrList)
-            {
-                subArray.Offset = offsets[subArray.Array];
-                subArray.Array = array;
-            }
-
-            return array;
-        }
+//        /// <summary>
+//        /// Make multiple subArrays cover the same array
+//        /// </summary>
+//        /// <typeparam name="T">The element type</typeparam>
+//        /// <param name="subArrays">The SubArrays to join</param>
+//        /// <returns>The new underlying array</returns>
+//        public static T[] Join<T>(params SubArray<T>[] subArrays) => Join((IEnumerable<SubArray<T>>) subArrays);
+//
+//        /// <summary>
+//        /// Make multiple subArrays cover the same array
+//        /// </summary>
+//        /// <typeparam name="T">The element type</typeparam>
+//        /// <param name="subArrays">The SubArrays to join</param>
+//        /// <returns>The new underlying array</returns>
+//        public static T[] Join<T>(IEnumerable<SubArray<T>> subArrays)
+//        {
+//            // todo: this breaks in the case: Join(a, b); Join(b, c)
+//            // possibly create "multiarray" class or similar which would manage these operations
+//            // and prevent this case from arising
+//
+//            var subArrList = subArrays.ToList(); // prevent multiple enumeration
+//
+//            HashSet<T[]> uniqueArrays = new HashSet<T[]>();
+//            foreach (var subArray in subArrList)
+//            {
+//                uniqueArrays.Add(subArray.Array);
+//            }
+//
+//            if (uniqueArrays.Count == 0) return new T[0];
+//            if (uniqueArrays.Count == 1) return uniqueArrays.ToArray()[0];
+//
+//            var length = 0;
+//            var offsets = new Dictionary<T[], int>();
+//            foreach (var uniqueArray in uniqueArrays)
+//            {
+//                offsets[uniqueArray] = length;
+//                length += uniqueArray.Length;
+//            }
+//
+//            var array = new T[length];
+//            foreach (var uniqueArray in uniqueArrays)
+//            {
+//                System.Array.ConstrainedCopy(uniqueArray, 0, array, offsets[uniqueArray], uniqueArray.Length);
+//            }
+//
+//            foreach (var subArray in subArrList)
+//            {
+//                subArray.Offset = offsets[subArray.Array];
+//                subArray.Array = array;
+//            }
+//
+//            return array;
+//        }
     }
 }

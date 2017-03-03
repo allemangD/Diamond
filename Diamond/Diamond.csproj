@@ -64,7 +64,7 @@
     <Compile Include="Buffers\VertexDataAttribute.cs" />
     <Compile Include="Wrappers\Wrapper.cs" />
     <Compile Include="Util\TileData.cs" />
-    <Compile Include="Util\Mesh.cs" />
+    <Compile Include="Render\VertexBuffer.cs" />
     <Compile Include="Util\ObjVertex.cs" />
     <Compile Include="Shaders\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

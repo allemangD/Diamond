@@ -17,7 +17,7 @@ namespace Diamond.Buffers
         internal readonly BufferWrap Wrapper;
         private readonly VertexDataInfo _vdi;
 
-        private readonly int _size;
+        protected readonly int Size;
 
         /// <summary>
         /// The target for this buffer; its type
@@ -38,7 +38,7 @@ namespace Diamond.Buffers
         {
             Wrapper = wrapper;
             Name = name;
-            _size = Marshal.SizeOf<T>();
+            Size = Marshal.SizeOf<T>();
             _vdi = VertexDataInfo.GetInfo<T>();
         }
 
@@ -46,7 +46,7 @@ namespace Diamond.Buffers
         /// Upload data to this buffer
         /// </summary>
         /// <param name="data">The data to upload</param>
-        public void Data(T[] data) => Wrapper.Data(_size, data);
+        public void Data(T[] data) => Wrapper.Data(Size, data);
 
         /// <summary>
         /// Upload a range of data to this buffer
@@ -54,7 +54,7 @@ namespace Diamond.Buffers
         /// <param name="offset">The range offset</param>
         /// <param name="count">The range length</param>
         /// <param name="data">The data to upload, offset and length apply to both this and the target</param>
-        public void Data(int offset, int count, T[] data) => Wrapper.SubData(_size, offset, count, data);
+        public void Data(int offset, int count, T[] data) => Wrapper.SubData(Size, offset, count, data);
 
         /// <summary>
         /// Upload a range of data to this buffer

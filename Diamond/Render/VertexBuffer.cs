@@ -107,95 +107,92 @@ namespace Diamond.Render
 
         public static VertexBuffer<ObjVertex>[] FromWavefront(string file)
         {
-            var lines = File.ReadAllLines(file);
+            var lines = File.ReadAllLines(file).Where(l => !l.StartsWith("#")).Select(l => l.Split(' ')).ToArray();
 
             var buffer = Buffer<ObjVertex>.Empty(BufferTarget.ArrayBuffer, BufferUsageHint.StaticDraw,
                 $"{file} buffer");
-
-            var vs = new List<Vector3>();
-            var vts = new List<Vector2>();
-            var vns = new List<Vector3>();
-            var faces = new List<ObjVertex>();
-            var vertices = new List<ObjVertex>();
 
             var name = file;
 
             var vertBuffers = new List<VertexBuffer<ObjVertex>>();
 
-            foreach (var line in lines)
+            // get all positional data
+            var vs = lines
+                .Where(items => items[0] == "v") // only "v" lines
+                .Select(items => new Vector3(    // get a vector3 from the values
+                    float.Parse(items[1]),
+                    float.Parse(items[2]),
+                    float.Parse(items[3])))
+                .ToArray();
+
+            // get all uv data
+            var vts = lines
+                .Where(items => items[0] == "vt") // only "vt" lines
+                .Select(items => new Vector2(     // get a vector2 from the values
+                    float.Parse(items[1]),
+                    1 - float.Parse(items[2])))   // flip along y
+                .ToArray();
+
+            // get all normal data
+            var vns = lines
+                .Where(items => items[0] == "vn") // only "vn" lines
+                .Select(items => new Vector3(     // get a vector3 from the values
+                    float.Parse(items[1]),
+                    float.Parse(items[2]),
+                    float.Parse(items[3])))
+                .ToArray();
+
+            // get all vertex data
+            var vertices = lines
+                .Where(items => items[0] == "f")      // only "f" liens
+                .Select(items => items.Skip(1))       // skip the "f" item
+                .Select(items => items                // get each vertex from the triangle
+                    .Select(inds => inds.Split('/'))) // split items into indices
+                .SelectMany(inds => inds)             // collapse nested index array into array of indexes
+                .Select(inds => new ObjVertex(        // get vertexdata from the value data at each index
+                    inds[0] == "" ? Vector3.Zero : vs[int.Parse(inds[0]) - 1],
+                    inds[1] == "" ? Vector2.Zero : vts[int.Parse(inds[1]) - 1],
+                    inds[2] == "" ? Vector3.Zero : vns[int.Parse(inds[2]) - 1]))
+                .ToArray();
+
+            buffer.Data(vertices); // upload vertex data to the buffer
+
+            var offset = 0; // offset of each vertexbuffer
+            var count = 0; // length of each vertexbuffer
+
+            foreach (var items in lines.Where(items => items[0] == "o" || items[0] == "f"))
             {
-                if (line.StartsWith("#")) continue;
-
-                var items = line.Split(' ');
-
-                switch (items[0])
+                if (items[0] != "f")
                 {
-                    case "v":
-                        var v = new Vector3(
-                            float.Parse(items[1]),
-                            float.Parse(items[2]),
-                            float.Parse(items[3]));
-                        vs.Add(v);
-                        break;
-                    case "vt":
-                        var vt = new Vector2(
-                            float.Parse(items[1]),
-                            1 - float.Parse(items[2]));
-                        vts.Add(vt);
-                        break;
-                    case "vn":
-                        var vn = new Vector3(
-                            float.Parse(items[1]),
-                            float.Parse(items[2]),
-                            float.Parse(items[3]));
-                        vns.Add(vn);
-                        break;
-                    case "f":
-                        for (var i = 1; i < 4; i++)
-                        {
-                            var inds = items[i].Split('/');
-                            var vi = inds[0] == "" ? Vector3.Zero : vs[int.Parse(inds[0]) - 1];
-                            var vti = inds[1] == "" ? Vector2.Zero : vts[int.Parse(inds[1]) - 1];
-                            var vni = inds[2] == "" ? Vector3.Zero : vns[int.Parse(inds[2]) - 1];
-                            var f = new ObjVertex(vi, vti, vni);
-                            faces.Add(f);
-                        }
-                        break;
-                    case "o":
-                        if (faces.Count > 0)
-                        {
-                            var count = vertices.Count;
-                            vertices.AddRange(faces);
-                            vertBuffers.Add(new VertexBuffer<ObjVertex>(
-                                buffer,
-                                new SubArray<ObjVertex>(vertices.ToArray(), count, faces.Count),
-                                PrimitiveType.Triangles,
-                                name));
-                        }
-                        name = items[1];
-                        faces.Clear();
-                        break;
-                    default:
-                        break;
+                    if (count > 0)
+                    {
+                        vertBuffers.Add(new VertexBuffer<ObjVertex>(
+                            buffer,
+                            new SubArray<ObjVertex>(vertices, offset, count),
+                            PrimitiveType.Triangles,
+                            name));
+                    }
+
+                    // reset for next vbo and move offset to the end of this one
+                    name = items[1];
+                    offset += count;
+                    count = 0;
+                }
+                else
+                {
+                    count += items.Length - 1; // size of current vbo increases by that many vertices
                 }
             }
 
-            if (faces.Count > 0)
+            // at the last vbo, or only vbo.
+            if (count > 0)
             {
-                var count = vertices.Count;
-                vertices.AddRange(faces);
                 vertBuffers.Add(new VertexBuffer<ObjVertex>(
-                    buffer, new SubArray<ObjVertex>(vertices.ToArray(), count, faces.Count),
+                    buffer,
+                    new SubArray<ObjVertex>(vertices, offset, count),
                     PrimitiveType.Triangles,
                     name));
             }
-
-            var data = vertices.ToArray();
-
-            foreach (var vertexBuffer in vertBuffers)
-                vertexBuffer.Vertices.Array = data;
-
-            buffer.Data(vertices.ToArray());
 
             return vertBuffers.ToArray();
         }

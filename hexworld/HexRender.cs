@@ -19,17 +19,16 @@ namespace hexworld
     {
         #region Fields
 
-        #region GLObjects
+        #region Disposables
 
         private Program _texPgm;
 
         private Texture _doorTex;
         private Texture _grassTex;
+        private Texture _stoneTex;
 
-        private Buffer<ObjVertex> _meshBuffer;
-        private Buffer<TileData> _tileBuffer;
-
-        private RenderGroup<TileData, ObjVertex> _renderGroup;
+        private Dictionary<string, VertexBuffer<ObjVertex>> _meshVbos;
+        private VertexBuffer<TileData>[] _tileVbos;
 
         protected override void OnClosed(EventArgs e)
         {
@@ -37,17 +36,19 @@ namespace hexworld
 
             _doorTex?.Dispose();
             _grassTex?.Dispose();
+            _stoneTex?.Dispose();
 
-            _meshBuffer?.Dispose();
-            _tileBuffer?.Dispose();
+            foreach (var vbo in _meshVbos.Values)
+                vbo?.Dispose();
+
+            foreach (var vbo in _tileVbos)
+                vbo?.Dispose();
         }
 
         #endregion
 
-        private VertexBuffer<TileData> _floorTiles;
-        private VertexBuffer<TileData> _doorTiles;
-
-        private VertexBuffer<ObjVertex> _cubeMesh;
+        private List<RenderGroup<TileData, ObjVertex>> _renderGroups;
+//        private RenderGroup<TileData, ObjVertex> _renderGroup;
 
         private Camera _camera;
 
@@ -72,6 +73,7 @@ namespace hexworld
 
             _doorTex = Texture.FromFile("res/door.png");
             _grassTex = Texture.FromFile("res/grass.png");
+            _stoneTex = Texture.FromFile("res/stone.png");
 
             var dir = "res";
 
@@ -87,30 +89,38 @@ namespace hexworld
                 .Select(arr => new SubArray<TileData>(arr))
                 .ToArray();
 
-            var tileVbo = VertexBuffer.FromArrays(allTiles, 0, "tiles");
+            _tileVbos = VertexBuffer.FromArrays(allTiles, 0, "tiles");
 
-            _doorTiles = tileVbo[0];
-            _floorTiles = tileVbo[1];
-
-            var cubeMesh = json["models"]
+            var vertexBuffers = json["models"]
                 .Select(path => (string) path)
                 .Select(path => Path.Combine(dir, path))
                 .Select(VertexBuffer.FromWavefront)
                 .SelectMany(meshes => meshes)
-                .First(mesh => mesh.Name == "Cube");
+                .ToArray();
 
-            _cubeMesh = cubeMesh;
+            _meshVbos = vertexBuffers.ToDictionary(vbo => vbo.Name, vbo => vbo);
 
             _camera = new Camera();
 
-            _renderGroup = new RenderGroup<TileData, ObjVertex>()
+            _renderGroups = new List<RenderGroup<TileData, ObjVertex>>();
+
+            _renderGroups.Add(new RenderGroup<TileData, ObjVertex>()
             {
-                Camera = _camera,
-                Instance = _floorTiles,
+                Vertices = _meshVbos["Cube"],
+                Instance = _tileVbos[0],
                 Program = _texPgm,
-                Vertices = _cubeMesh,
-                Texture = _grassTex
-            };
+                Texture = _stoneTex,
+                Camera = _camera,
+            });
+
+            _renderGroups.Add(new RenderGroup<TileData, ObjVertex>()
+            {
+                Vertices = _meshVbos["Cube"],
+                Instance = _tileVbos[1],
+                Program = _texPgm,
+                Texture = _grassTex,
+                Camera = _camera,
+            });
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
@@ -138,7 +148,10 @@ namespace hexworld
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
-            _renderGroup.Draw();
+            foreach (var renderGroup in _renderGroups)
+            {
+                renderGroup.Draw();
+            }
 
             SwapBuffers();
         }

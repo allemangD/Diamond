@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using Diamond.Wrappers;
-using NLog;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Shaders

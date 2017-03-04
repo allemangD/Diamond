@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Diamond.Buffers;
 using Diamond.Render;
 using Diamond.Shaders;
 using Diamond.Textures;
@@ -11,7 +10,6 @@ using Newtonsoft.Json.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
-using Buffer = Diamond.Buffers.Buffer;
 
 namespace hexworld
 {

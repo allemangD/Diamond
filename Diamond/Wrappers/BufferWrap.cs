@@ -37,6 +37,10 @@ namespace Diamond.Wrappers
 
         #endregion
 
+        #endregion
+
+        #region Methods
+
         /// <summary>
         /// Binds this buffer (glBindBuffer)
         /// </summary>
@@ -51,7 +55,7 @@ namespace Diamond.Wrappers
         public void Data<T>(int size, T[] data) where T : struct
         {
             Bind();
-            GL.BufferData(Target, (IntPtr) (size * data.Length), data, Usage);
+            GL.BufferData(Target, (IntPtr)(size * data.Length), data, Usage);
         }
 
         /// <summary>
@@ -65,7 +69,7 @@ namespace Diamond.Wrappers
         public void SubData<T>(int size, int offset, int count, T[] data) where T : struct
         {
             Bind();
-            GL.BufferSubData(Target, (IntPtr) (offset * size), (IntPtr) (count * size), data);
+            GL.BufferSubData(Target, (IntPtr)(offset * size), (IntPtr)(count * size), data);
         }
 
         #endregion

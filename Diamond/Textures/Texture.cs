@@ -2,7 +2,6 @@
 using System.Drawing.Imaging;
 using System.IO;
 using Diamond.Wrappers;
-using NLog;
 using OpenTK.Graphics.OpenGL4;
 using PixelFormat = OpenTK.Graphics.OpenGL4.PixelFormat;
 

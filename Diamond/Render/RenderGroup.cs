@@ -1,7 +1,5 @@
-﻿using Diamond.Buffers;
-using Diamond.Shaders;
+﻿using Diamond.Shaders;
 using Diamond.Textures;
-using Diamond.Util;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Render

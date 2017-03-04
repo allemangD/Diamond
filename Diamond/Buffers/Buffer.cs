@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 using Diamond.Shaders;
 using Diamond.Util;
 using Diamond.Wrappers;
-using NLog;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Buffers

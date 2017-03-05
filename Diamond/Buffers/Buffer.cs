@@ -78,9 +78,9 @@ namespace Diamond.Buffers
             Wrapper.Bind();
             foreach (var attr in _vdi.Pointers)
             {
-                var loc = program.AttributeLocation(attr.Name);
-                if (loc.HasValue)
-                    GL.VertexAttribPointer((int) loc, attr.Size, attr.Type, attr.Normalized, _vdi.Stride, attr.Offset);
+                if (program.HasAttribute(attr.Name))
+                    GL.VertexAttribPointer(program.AttributeLocation(attr.Name), attr.Size, attr.Type, attr.Normalized,
+                        _vdi.Stride, attr.Offset);
             }
         }
 

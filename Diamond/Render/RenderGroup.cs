@@ -45,16 +45,12 @@ namespace Diamond.Render
 
             Texture.Bind(0);
 
-            var texLoc = Program.UniformLocation("tex");
-            var viewLoc = Program.UniformLocation("view");
-            var projLoc = Program.UniformLocation("proj");
-
-            if (texLoc.HasValue)
-                GL.Uniform1(texLoc.Value, 0);
-            if (viewLoc.HasValue)
-                GL.UniformMatrix4(viewLoc.Value, false, ref Camera.View);
-            if (projLoc.HasValue)
-                GL.UniformMatrix4(projLoc.Value, false, ref Camera.Projection);
+            if (Program.HasUniform("tex"))
+                GL.Uniform1(Program.UniformLocation("tex"), 0);
+            if (Program.HasUniform("view"))
+                GL.UniformMatrix4(Program.UniformLocation("view"), false, ref Camera.View);
+            if (Program.HasUniform("proj"))
+                GL.UniformMatrix4(Program.UniformLocation("proj"), false, ref Camera.Projection);
 
             if (Instance != null)
                 Vertices.DrawInstanced(Instance);

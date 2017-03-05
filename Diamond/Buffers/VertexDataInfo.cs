@@ -51,11 +51,11 @@ namespace Diamond.Buffers
 
             foreach (var attr in Pointers)
             {
-                var loc = Program.Current.AttributeLocation(attr.Name);
-                if (!loc.HasValue)
+                if (!Program.Current.HasAttribute(attr.Name))
                     continue;
-                GL.EnableVertexAttribArray((int) loc);
-                GL.VertexAttribDivisor((int) loc, Divisor);
+                var loc = Program.Current.AttributeLocation(attr.Name);
+                GL.EnableVertexAttribArray(loc);
+                GL.VertexAttribDivisor(loc, Divisor);
             }
         }
 
@@ -69,10 +69,10 @@ namespace Diamond.Buffers
 
             foreach (var attr in Pointers)
             {
-                var loc = Program.Current.AttributeLocation(attr.Name);
-                if (!loc.HasValue)
+                if (!Program.Current.HasAttribute(attr.Name))
                     continue;
-                GL.DisableVertexAttribArray((int) loc);
+                var loc = Program.Current.AttributeLocation(attr.Name);
+                GL.DisableVertexAttribArray(loc);
             }
         }
 

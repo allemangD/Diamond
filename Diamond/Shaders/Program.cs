@@ -28,28 +28,46 @@ namespace Diamond.Shaders
             Name = name;
         }
 
-        // todo change these to not use int? - possibly use TryGet, or return negative value if not present
+        /// <summary>
+        /// Check if the program has a uniform
+        /// </summary>
+        /// <param name="name">The name of the uniform</param>
+        /// <returns>Whether the program has this uniform</returns>
+        public bool HasUniform(string name)
+        {
+            return _uniforms.ContainsKey(name);
+        }
 
         /// <summary>
         /// Get the location of a uniform
         /// </summary>
         /// <param name="name">The name of the uniform</param>
-        /// <returns>The location, or no value if uniform not present</returns>
-        public int? UniformLocation(string name)
+        /// <returns>The location of the uniform</returns>
+        public int UniformLocation(string name)
         {
-            if (_uniforms.ContainsKey(name)) return _uniforms[name];
-            return null;
+            if (HasUniform(name)) return _uniforms[name];
+            throw new KeyNotFoundException($"Shader {this} does not contain uniform {name}");
+        }
+
+        /// <summary>
+        /// Check if the program has an attribute
+        /// </summary>
+        /// <param name="name">The name of the attribute</param>
+        /// <returns>Whether the program has this attribute</returns>
+        public bool HasAttribute(string name)
+        {
+            return _attributes.ContainsKey(name);
         }
 
         /// <summary>
         /// Get the location of an attribute
         /// </summary>
         /// <param name="name">The name of the attribute</param>
-        /// <returns>The location, or no value if attribute not present</returns>
-        public int? AttributeLocation(string name)
+        /// <returns>The location of the attribute</returns>
+        public int AttributeLocation(string name)
         {
-            if (_attributes.ContainsKey(name)) return _attributes[name];
-            return null;
+            if (HasAttribute(name)) return _attributes[name];
+            throw new KeyNotFoundException($"Shader {this} does not contain attribute {name}");
         }
 
         /// <summary>

@@ -14,9 +14,8 @@ namespace Diamond.Buffers
     public class Buffer<T> : GLObject where T : struct
     {
         internal readonly BufferWrap Wrapper;
-        private readonly VertexDataInfo _vdi;
 
-        protected readonly int Size;
+        private readonly VertexDataInfo _vdi;
 
         /// <summary>
         /// The target for this buffer; its type
@@ -37,7 +36,6 @@ namespace Diamond.Buffers
         {
             Wrapper = wrapper;
             Name = name;
-            Size = Marshal.SizeOf<T>();
             _vdi = VertexDataInfo.GetInfo<T>();
         }
 
@@ -45,7 +43,7 @@ namespace Diamond.Buffers
         /// Upload data to this buffer
         /// </summary>
         /// <param name="data">The data to upload</param>
-        public void Data(T[] data) => Wrapper.Data(Size, data);
+        public void Data(T[] data) => Wrapper.Data(_vdi.Stride, data);
 
         /// <summary>
         /// Upload a range of data to this buffer
@@ -53,7 +51,7 @@ namespace Diamond.Buffers
         /// <param name="offset">The range offset</param>
         /// <param name="count">The range length</param>
         /// <param name="data">The data to upload, offset and length apply to both this and the target</param>
-        public void Data(int offset, int count, T[] data) => Wrapper.SubData(Size, offset, count, data);
+        public void Data(int offset, int count, T[] data) => Wrapper.SubData(_vdi.Stride, offset, count, data);
 
         /// <summary>
         /// Upload a range of data to this buffer

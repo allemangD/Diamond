@@ -11,12 +11,12 @@ namespace Diamond
         /// <summary>
         /// Logger for all GLObjects
         /// </summary>
-        protected static readonly Logger Logger = LogManager.GetLogger("GLObject");
+        protected static readonly Logger Logger = LogManager.GetLogger(nameof(GLObject));
 
         /// <summary>
         /// Name of this GLObject used for identification
         /// </summary>
-        public string Name { get; protected set; } = "GLObject";
+        public string Name { get; protected set; } = nameof(GLObject);
 
         /// <summary>
         /// Delegate Dispose to underlying wrapper class

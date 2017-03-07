@@ -46,7 +46,6 @@ namespace hexworld
         #endregion
 
         private List<RenderGroup<TileData, ObjVertex>> _renderGroups;
-//        private RenderGroup<TileData, ObjVertex> _renderGroup;
 
         private Camera _camera;
 
@@ -100,25 +99,25 @@ namespace hexworld
 
             _camera = new Camera();
 
-            _renderGroups = new List<RenderGroup<TileData, ObjVertex>>();
-
-            _renderGroups.Add(new RenderGroup<TileData, ObjVertex>()
+            _renderGroups = new List<RenderGroup<TileData, ObjVertex>>
             {
-                Vertices = _meshVbos["Cube"],
-                Instance = _tileVbos[0],
-                Program = _texPgm,
-                Texture = _stoneTex,
-                Camera = _camera,
-            });
-
-            _renderGroups.Add(new RenderGroup<TileData, ObjVertex>()
-            {
-                Vertices = _meshVbos["Cube"],
-                Instance = _tileVbos[1],
-                Program = _texPgm,
-                Texture = _grassTex,
-                Camera = _camera,
-            });
+                new RenderGroup<TileData, ObjVertex>()
+                {
+                    Vertices = _meshVbos["Cube"],
+                    Instance = _tileVbos[0],
+                    Program = _texPgm,
+                    Texture = _stoneTex,
+                    Camera = _camera,
+                },
+                new RenderGroup<TileData, ObjVertex>()
+                {
+                    Vertices = _meshVbos["Cube"],
+                    Instance = _tileVbos[1],
+                    Program = _texPgm,
+                    Texture = _grassTex,
+                    Camera = _camera,
+                }
+            };
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)

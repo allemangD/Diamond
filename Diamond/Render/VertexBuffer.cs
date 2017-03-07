@@ -12,21 +12,38 @@ using Buffer = Diamond.Buffers.Buffer;
 
 namespace Diamond.Render
 {
+    /// <summary>
+    /// Manage a vertex buffer object
+    /// </summary>
+    /// <typeparam name="T">Buffer data type</typeparam>
     public class VertexBuffer<T> : IDisposable where T : struct
     {
         private Logger Logger = LogManager.GetLogger("VertexBuffer");
 
+        /// <summary>
+        /// The name of this buffer object for identification
+        /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// The underlying buffer for this object
+        /// </summary>
         public Buffer<T> Buffer;
+
+        /// <summary>
+        /// A subset of the Buffer's array for this buffer
+        /// </summary>
         public SubArray<T> Vertices;
+
+        /// <summary>
+        /// Primitive type to render this object
+        /// </summary>
         public PrimitiveType Primitive;
 
-        private static readonly VertexDataInfo tVdi;
-
-        static VertexBuffer()
-        {
-            tVdi = VertexDataInfo.GetInfo<T>();
-        }
+        /// <summary>
+        /// Vertex data info for this type of data
+        /// </summary>
+        private static readonly VertexDataInfo tVdi = VertexDataInfo.GetInfo<T>();
 
         internal VertexBuffer(Buffer<T> buffer, SubArray<T> vertices, PrimitiveType primitive, string name)
         {
@@ -36,6 +53,9 @@ namespace Diamond.Render
             Name = name;
         }
 
+        /// <summary>
+        /// Render this buffer
+        /// </summary>
         public void Draw()
         {
             Buffer.PointTo(Program.Current);
@@ -47,6 +67,11 @@ namespace Diamond.Render
             tVdi.DisableVertexPointers();
         }
 
+        /// <summary>
+        /// Render this buffer using a second buffer as instance data
+        /// </summary>
+        /// <typeparam name="TI"></typeparam>
+        /// <param name="instance"></param>
         public void DrawInstanced<TI>(VertexBuffer<TI> instance) where TI : struct
         {
             var tiVdi = VertexBuffer<TI>.tVdi;
@@ -76,6 +101,9 @@ namespace Diamond.Render
         }
     }
 
+    /// <summary>
+    /// Static operations for vertex buffers
+    /// </summary>
     public static class VertexBuffer
     {
         public static VertexBuffer<T>[] FromArrays<T>(T[][] arrays, PrimitiveType primitive = PrimitiveType.Triangles,

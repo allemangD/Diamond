@@ -51,26 +51,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Buffers\Buffer.cs" />
-    <Compile Include="Buffers\VertexDataInfo.cs" />
-    <Compile Include="Render\Camera.cs" />
-    <Compile Include="Render\RenderGroup.cs" />
-    <Compile Include="Wrappers\BufferWrap.cs" />
     <Compile Include="GLObject.cs" />
-    <Compile Include="Wrappers\ProgramWrap.cs" />
-    <Compile Include="Wrappers\ShaderWrap.cs" />
-    <Compile Include="Wrappers\TextureWrap.cs" />
     <Compile Include="Util\SubArray.cs" />
-    <Compile Include="Buffers\VertexDataAttribute.cs" />
-    <Compile Include="Wrappers\Wrapper.cs" />
-    <Compile Include="Util\TileData.cs" />
-    <Compile Include="Render\VertexBuffer.cs" />
-    <Compile Include="Util\ObjVertex.cs" />
     <Compile Include="Shaders\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shaders\Shader.cs" />
-    <Compile Include="Textures\Texture.cs" />
-    <Compile Include="Buffers\VertexPointerAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="NLog.config">

@@ -1,26 +1,64 @@
 ﻿using System;
 using NLog;
+using OpenTK.Graphics;
 
 namespace Diamond
 {
-    /// <summary>
-    /// Provide managed access to OpenGL objects
-    /// </summary>
     public abstract class GLObject : IDisposable
     {
         /// <summary>
-        /// Logger for all GLObjects
+        /// The logger for GLObject-related info
         /// </summary>
-        protected static readonly Logger Logger = LogManager.GetLogger(nameof(GLObject));
+        protected internal static Logger Logger = LogManager.GetLogger(nameof(GLObject));
 
         /// <summary>
-        /// Name of this GLObject used for identification
+        /// The OpenGL object name
         /// </summary>
-        public string Name { get; protected set; } = nameof(GLObject);
+        public int Id { get; private set; }
 
         /// <summary>
-        /// Delegate Dispose to underlying wrapper class
+        /// Force object name assignment
         /// </summary>
-        public abstract void Dispose();
+        /// <param name="id">The OpenGL object name</param>
+        protected GLObject(int id)
+        {
+            Id = id;
+        }
+
+        /// <summary>
+        /// Free this object name on the GPU
+        /// </summary>
+        protected abstract void Delete();
+
+        #region IDisposable
+
+        /// <inheritdoc />
+        protected virtual void Dispose(bool disposing)
+        {
+            if (GraphicsContext.CurrentContext != null)
+                Delete();
+            else
+                Logger.Error("Cannot delete {0} because there is no graphics context.", this);
+
+            if (disposing)
+            {
+                // no managed resources to dispose
+            }
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <inheritdoc />
+        ~GLObject()
+        {
+            Dispose(false);
+        }
+
+        #endregion
     }
 }

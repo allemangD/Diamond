@@ -1,96 +1,165 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using Diamond.Wrappers;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Shaders
 {
     /// <summary>
-    /// Manges a OpenGL Shader object
+    /// Wrap an OpenGL shader object
     /// </summary>
-    public class Shader : GLObject
+    public sealed class Shader : GLObject
     {
-        internal readonly ShaderWrap Wrapper;
+        #region Constructor, Delete()
 
         /// <summary>
-        /// The source used to create this shader
+        /// Create a shader object wrapper
         /// </summary>
-        public string Source { get; }
+        /// <param name="type">The type of this shader</param>
+        private Shader(ShaderType type)
+            : base(GL.CreateShader(type))
+        {
+            ShaderType = type;
+            Logger.Debug("Created {0}", this);
+        }
+
+        /// <inheritdoc />
+        protected override void Delete()
+        {
+            Logger.Debug("Disposing {0}", this);
+            GL.DeleteShader(Id);
+        }
+
+        #endregion
+
+        #region Properties
+
+        #region Queries
+
+        #endregion
+
+        #region Stored
+
+        /// <summary>
+        /// Store the source code to prevent repeated queries to glGetShaderSource
+        /// </summary>
+        private string _source;
+
+        /// <summary>
+        /// GLSL source code for this shader
+        /// </summary>
+        public string Source
+        {
+            get => _source;
+            set
+            {
+                _source = value;
+                GL.ShaderSource(Id, _source);
+
+                Logger.Debug("Set shader source for {0}", this);
+            }
+        }
+
+        /// <summary>
+        /// The compilation status of this shader
+        /// </summary>
+        public bool Compiled { get; private set; }
 
         /// <summary>
         /// The type of this shader
         /// </summary>
-        public ShaderType Type { get; }
+        public ShaderType ShaderType { get; private set; }
 
-        internal Shader(ShaderWrap wrapper, string source, ShaderType type, string name)
+        /// <summary>
+        /// The InfoLog for this program
+        /// </summary>
+        public string InfoLog { get; private set; }
+
+        #endregion
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Get a property of this shader
+        /// </summary>
+        /// <param name="param">The shader property to get</param>
+        /// <returns>The int value of the shader property</returns>
+        private int Get(ShaderParameter param)
         {
-            Wrapper = wrapper;
-            Source = source;
-            Type = type;
-            Name = name;
+            GL.GetShader(Id, param, out int res);
+            return res;
         }
 
-        public override string ToString() => Name == null
-            ? $"{Wrapper}"
-            : $"{Wrapper} \'{Name}\'";
-
-        public override void Dispose()
+        /// <summary>
+        /// Try to compile this shader
+        /// </summary>
+        public void Compile()
         {
-            Logger.Debug("Disposing {0}", this);
-            Wrapper.Dispose();
+            Logger.Debug("Compiling {0}", this);
+            GL.CompileShader(Id);
+            // compilation status can only change after glCompileShader
+            Compiled = Get(ShaderParameter.CompileStatus) != 0;
+
+            if (Compiled)
+                Logger.Trace("Successfully compiled {0}", this);
+            else
+            {
+                InfoLog = GL.GetShaderInfoLog(Id).Trim();
+
+                Logger.Error("Failed to compile {0}", this);
+                Logger.Trace("InfoLog for {0}: \n{1}", this, InfoLog);
+            }
         }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"'Shader {Id}: {ShaderType}'";
+
+        #endregion
 
         #region Factory Methods
 
-        // Used to infer shader type based on file extension
+        /// <summary>
+        /// Map file extensions to appropriate shader type
+        /// </summary>
         private static readonly Dictionary<string, ShaderType> Extensions = new Dictionary<string, ShaderType>
         {
             [".vs"] = ShaderType.VertexShader,
             [".vert"] = ShaderType.VertexShader,
-            [".fs"] = ShaderType.FragmentShader,
-            [".frag"] = ShaderType.FragmentShader,
             [".gs"] = ShaderType.GeometryShader,
             [".geom"] = ShaderType.GeometryShader,
+            [".fs"] = ShaderType.FragmentShader,
+            [".frag"] = ShaderType.FragmentShader,
         };
 
         /// <summary>
-        /// Create and compile a shader from glsl source code
+        /// Create and compile a shader from source
         /// </summary>
-        /// <param name="source">The glsl source</param>
-        /// <param name="type">The type of shader to create</param>
-        /// <param name="name">The name of this GLObject</param>
-        /// <returns>The compiled Shader, or null if initialization failed</returns>
-        public static Shader FromSource(string source, ShaderType type, string name = "Shader")
+        /// <param name="source">The GLSL source for the shader</param>
+        /// <param name="type">The type of the shader</param>
+        /// <returns>The compiled shader, or null if initialization failed</returns>
+        public static Shader FromSource(string source, ShaderType type)
         {
-            var wrapper = new ShaderWrap(type);
-            var service = new Shader(wrapper, source, type, name);
+            var shader = new Shader(type) {Source = source};
+            shader.Compile();
 
-            Logger.Debug("Created {0}", service);
-
-            wrapper.Source = source;
-            wrapper.Compile();
-
-            if (!wrapper.Compiled)
+            if (!shader.Compiled)
             {
-                Logger.Warn("Failed to compile {0}", service);
-                Logger.Debug("InfoLog for {0}", service);
-                service.Dispose();
+                shader.Dispose();
                 return null;
             }
 
-            Logger.Debug("Successfully compiled {0}", service);
-
-            return service;
+            return shader;
         }
 
         /// <summary>
-        /// Create and compile a shader from a glsl source file
+        /// Create and compile a shader from a source file
         /// </summary>
-        /// <param name="path">The path to the glsl source file</param>
-        /// <param name="type">The type of the shader to create</param>
-        /// <param name="name">The name of this GLObject</param>
-        /// <returns></returns>
-        public static Shader FromFile(string path, ShaderType type, string name = null)
+        /// <param name="path">The path to the source file</param>
+        /// <param name="type">The type of the shader</param>
+        /// <returns>The compiled shader, or null if initialization failed</returns>
+        public static Shader FromFile(string path, ShaderType type)
         {
             if (!File.Exists(path))
             {
@@ -98,21 +167,20 @@ namespace Diamond.Shaders
                 return null;
             }
 
-            if (name == null)
-                name = Path.GetFileNameWithoutExtension(path);
-
-            return FromSource(File.ReadAllText(path), type, name);
+            var source = File.ReadAllText(path);
+            return FromSource(source, type);
         }
 
         /// <summary>
-        /// Create and compile a shader from a glsl source file. Shader type is inferred from file extension.
-        /// Extension must be .vs, .vert, .fs, .frag, .gs, or .geom. This can optionally be followed by .glsl or .txt,
-        /// but the shader type extension must be present.
+        /// Create and compile a shader from a source file, and infer the type of the shader from the file extension.
+        /// <para></para>
+        /// File must have extension or sub-extension <code>.vs</code>, <code>.fs</code>, <code>.gs</code>, <code>.vert</code>,
+        /// <code>.frag</code>, or <code>.geom</code>. For example: <code>shader.fs</code>, <code>shader.vert.glsl</code>, 
+        /// <code>shader.gs.txt</code>
         /// </summary>
-        /// <param name="path">The path to the glsl source file</param>
-        /// <param name="name">The name of this GLObject</param>
-        /// <returns>The compiled shader, or null if initialization failed or shader type cannot be inferred</returns>
-        public static Shader FromFile(string path, string name = null)
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static Shader FromFile(string path)
         {
             if (!File.Exists(path))
             {
@@ -121,12 +189,12 @@ namespace Diamond.Shaders
             }
 
             var ext = Path.GetExtension(path);
-            var fileName = Path.GetFileNameWithoutExtension(path);
+            var file = Path.GetFileNameWithoutExtension(path);
 
             // get sub-extension if real extension is not valid
             if (ext != null)
                 if (!Extensions.ContainsKey(ext))
-                    ext = Path.GetExtension(fileName);
+                    ext = Path.GetExtension(file);
 
             // if no extension, no sub-extension, or invalid sub-extension
             if (ext == null || !Extensions.ContainsKey(ext))
@@ -136,10 +204,7 @@ namespace Diamond.Shaders
             }
 
             var type = Extensions[ext];
-            if (name == null)
-                name = fileName;
-
-            return FromFile(path, type, name);
+            return FromFile(path, type);
         }
 
         #endregion

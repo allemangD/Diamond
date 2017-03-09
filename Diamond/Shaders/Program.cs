@@ -1,233 +1,291 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using Diamond.Wrappers;
+using System.Text;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Shaders
 {
     /// <summary>
-    /// Manages an OpenGL Program object
+    /// Wrap and OpenGL program object
     /// </summary>
     public class Program : GLObject
     {
-        internal readonly ProgramWrap Wrapper;
+        #region Static
+
+        private static Program _current;
 
         /// <summary>
-        /// The currently active program. Manually invoking glUseProgram will break this.
+        /// The currently active program
         /// </summary>
-        public static Program Current { get; private set; }
+        public static Program Current
+        {
+            get => _current;
+            set
+            {
+                if (!value?.Linked ?? false)
+                {
+                    Logger.Error("Cannot use program {0}", value);
+                    value = null;
+                }
 
-        // keep a cache of uniform and attributes to prevent repeated queries
-        private readonly Dictionary<string, int> _uniforms = new Dictionary<string, int>();
+                Logger.Debug("Using program {0}", value);
+                GL.UseProgram((_current = value)?.Id ?? 0);
+            }
+        }
+
+        #endregion
+
+        #region Constructor, Delete()
+
+        /// <summary>
+        /// Create a program object wrapper
+        /// </summary>
+        private Program()
+            : base(GL.CreateProgram())
+        {
+            Logger.Debug("Created {0}", this);
+        }
+
+        /// <inheritdoc />
+        protected override void Delete()
+        {
+            Logger.Debug("Disposing {0}", this);
+            GL.DeleteProgram(Id);
+        }
+
+        #endregion
+
+        #region Properties
+
+        #region Queries
+
+        /// <summary>
+        /// The number of active uniforms
+        /// </summary>
+        public int ActiveUniforms => Get(GetProgramParameterName.ActiveUniforms);
+
+        /// <summary>
+        /// The number of active attributes
+        /// </summary>
+        public int ActiveAttributes => Get(GetProgramParameterName.ActiveAttributes);
+
+        #endregion
+
+        #region Stored
+
+        /// <summary>
+        /// The InfoLog for this program
+        /// </summary>
+        public string InfoLog { get; private set; }
+
+        /// <summary>
+        /// The link status of this program
+        /// </summary>
+        public bool Linked { get; private set; }
+
+        #endregion
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Get a property of this program
+        /// </summary>
+        /// <param name="param">The program property to get</param>
+        /// <returns>The int value of the program property</returns>
+        private int Get(GetProgramParameterName param)
+        {
+            GL.GetProgram(Id, param, out int res);
+            return res;
+        }
+
+        /// <summary>
+        /// Try to link this program
+        /// </summary>
+        public void Link()
+        {
+            _attributes.Clear();
+            _uniforms.Clear();
+
+            Logger.Debug("Linking {0}", this);
+            GL.LinkProgram(Id);
+            // link status can only change after link attempt
+            Linked = Get(GetProgramParameterName.LinkStatus) != 0;
+
+            if (Linked)
+            {
+                Logger.Trace("Successfully linked {0}", this);
+
+                for (var i = 0; i < ActiveAttributes; i++)
+                {
+                    var sb = new StringBuilder(256);
+                    GL.GetActiveAttrib(Id, i, sb.Capacity, out int length, out int size, out ActiveAttribType type, sb);
+                    var name = sb.ToString();
+                    _attributes[name] = i;
+                }
+
+                for (var i = 0; i < ActiveUniforms; i++)
+                {
+                    var sb = new StringBuilder(256);
+                    GL.GetActiveUniform(Id, i, sb.Capacity, out int length, out int size, out ActiveUniformType type,
+                        sb);
+                    var name = sb.ToString();
+                    _uniforms[name] = i;
+                }
+            }
+            else
+            {
+                InfoLog = GL.GetProgramInfoLog(Id).Trim();
+
+                Logger.Error("Failed to link {0}", this);
+                Logger.Trace("InfoLog for {0}:\n{1}", this, InfoLog);
+            }
+        }
+
+        /// <summary>
+        /// Use this program
+        /// <para></para>
+        /// Equivalent to <code>Program.Current = value</code>
+        /// </summary>
+        public void Use() => Current = this;
+
+        #region Attribute Locations
 
         private readonly Dictionary<string, int> _attributes = new Dictionary<string, int>();
-
-        internal Program(ProgramWrap wrapper, string name)
-        {
-            Wrapper = wrapper;
-            Name = name;
-        }
+        private readonly Dictionary<string, int> _uniforms = new Dictionary<string, int>();
 
         /// <summary>
-        /// Check if the program has a uniform
+        /// Check if this program has an active attribute
         /// </summary>
-        /// <param name="name">The name of the uniform</param>
-        /// <returns>Whether the program has this uniform</returns>
-        public bool HasUniform(string name)
-        {
-            return _uniforms.ContainsKey(name);
-        }
+        /// <param name="name">The attribute name</param>
+        /// <returns>Whether the progrma has an active attribute</returns>
+        public bool HasAttribute(string name) => _attributes.ContainsKey(name);
 
         /// <summary>
-        /// Get the location of a uniform
+        /// Check if this program has an active uniform
         /// </summary>
-        /// <param name="name">The name of the uniform</param>
-        /// <returns>The location of the uniform</returns>
-        public int UniformLocation(string name)
-        {
-            if (HasUniform(name)) return _uniforms[name];
-            throw new KeyNotFoundException($"Shader {this} does not contain uniform {name}");
-        }
+        /// <param name="name">The uniform name</param>
+        /// <returns>Whether the progrma has an active uniform</returns>
+        public bool HasUniform(string name) => _uniforms.ContainsKey(name);
 
         /// <summary>
-        /// Check if the program has an attribute
+        /// Get the location of an attribute by name
         /// </summary>
-        /// <param name="name">The name of the attribute</param>
-        /// <returns>Whether the program has this attribute</returns>
-        public bool HasAttribute(string name)
-        {
-            return _attributes.ContainsKey(name);
-        }
-
-        /// <summary>
-        /// Get the location of an attribute
-        /// </summary>
-        /// <param name="name">The name of the attribute</param>
+        /// <param name="name">The attribute name</param>
         /// <returns>The location of the attribute</returns>
         public int AttributeLocation(string name)
         {
-            if (HasAttribute(name)) return _attributes[name];
-            throw new KeyNotFoundException($"Shader {this} does not contain attribute {name}");
+            if (!HasAttribute(name))
+                throw new InvalidOperationException($"{this} does not have active attribute '{name}'");
+            return _attributes[name];
         }
 
         /// <summary>
-        /// Use this Program to render. Also updates Program.Current
+        /// Get the location of an uniform by name
         /// </summary>
-        public void Use()
+        /// <param name="name">The uniform name</param>
+        /// <returns>The location of the uniform</returns>
+        public int UniformLocation(string name)
         {
-            Wrapper.Use();
-            Current = this;
+            if (!HasUniform(name)) throw new InvalidOperationException($"{this} does not have active uniform '{name}'");
+            return _uniforms[name];
         }
 
-        /// <summary>
-        /// Use the default shader to render
-        /// </summary>
-        //? Could create static Program instance which wraps the default shader
-        // ie Shader.Default.Use()
-        // would also allow sending arrays to the default attribs like gl_Vertex etc.
-        public static void UseDefault()
-        {
-            GL.UseProgram(0);
-            Current = null;
-        }
+        #endregion
 
         /// <summary>
-        /// Helper method to try to link this program
-        /// </summary>
-        /// <returns></returns>
-        private bool Link()
-        {
-            _uniforms.Clear();
-            _attributes.Clear();
-
-            Wrapper.Link();
-
-            if (!Wrapper.Linked)
-                return false;
-
-            for (var i = 0; i < Wrapper.ActiveUniforms; i++)
-                _uniforms[Wrapper.UniformName(i)] = i;
-
-            for (var i = 0; i < Wrapper.ActiveAttributes; i++)
-                _attributes[Wrapper.AttributeName(i)] = i;
-
-            return true;
-        }
-
-        /// <summary>
-        /// Helper method to attach a shader to this program
+        /// Attach a shader to this program
         /// </summary>
         /// <param name="shader">The shader to attach</param>
-        private void Attach(Shader shader)
+        public void Attach(Shader shader)
         {
-            Wrapper.Attach(shader.Wrapper);
+            Logger.Debug("Attaching {0} to {1}", shader, this);
+            GL.AttachShader(Id, shader.Id);
         }
 
-        public override string ToString() => $"Program {Wrapper} \'{Name}\'";
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"'Program {Id}'";
 
-        public override void Dispose()
-        {
-            Logger.Debug("Disposing {0}", this);
-            Wrapper.Dispose();
-        }
+        #endregion
 
         #region Factory Methods
 
         /// <summary>
-        /// Create a program from compiled shaders
+        /// Create and link a program from precompiled shaders
         /// </summary>
-        /// <param name="name">The name of this GLObject</param>
-        /// <param name="shaders">The shaders to use in this program</param>
-        /// <returns>The linked program, or null if initialization failed</returns>
-        public static Program FromShaders(string name, params Shader[] shaders) => FromShaders(name,
-            (IEnumerable<Shader>) shaders);
+        /// <param name="shaders">The shaders used in this program</param>
+        /// <returns>A linked program, or null if initialization failed</returns>
+        public static Program FromShaders(params Shader[] shaders) => FromShaders((IEnumerable<Shader>) shaders);
 
         /// <summary>
-        /// Create a program from compiled shaders
+        /// Create and link a program from precompiled shaders
         /// </summary>
-        /// <param name="name">The name of this GLObject</param>
-        /// <param name="shaders">The shaders to use in this program</param>
-        /// <returns>The linked program, or null if initialization failed</returns>
-        public static Program FromShaders(string name, IEnumerable<Shader>shaders)
+        /// <param name="shaders">The shaders used in this program</param>
+        /// <returns>A linked program, or null if initialization failed</returns>
+        public static Program FromShaders(IEnumerable<Shader> shaders)
         {
             if (shaders == null)
             {
-                Logger.Error("Cannot create program {0} with no shaders.", name);
+                Logger.Error("Cannot create program from no shaders.");
                 return null;
             }
 
-            var wrapper = new ProgramWrap();
-            var service = new Program(wrapper, name);
-
-            Logger.Debug("Created {0}", service);
+            var program = new Program();
 
             foreach (var shader in shaders)
             {
                 if (shader == null)
                 {
-                    Logger.Error("One or more shaders failed to compile - cannot create program {0}", name);
-                    service.Dispose();
+                    Logger.Error("One or more shaders is null - cannot create program");
+                    program.Dispose();
                     return null;
                 }
-
-                service.Attach(shader);
+                program.Attach(shader);
             }
 
-            var linked = service.Link();
+            program.Link();
 
-            if (!linked)
-            {
-                Logger.Warn("Failed to link {0}", service);
-                Logger.Debug("InfoLog for {0}", service);
-                service.Dispose();
-                return null;
-            }
+            if (program.Linked) return program;
 
-            Logger.Debug("Successfully linked {0}", service);
-
-            return service;
+            program.Dispose();
+            return null;
         }
 
         /// <summary>
-        /// Create a program from compiled shaders
+        /// Create and link a program from glsl source files. Shader types must be inferrable from file extensions.
+        /// <para></para>
+        /// See <see cref="Shader.FromFile(string,ShaderType)"/> for file extension details
         /// </summary>
-        /// <param name="shaders">The shaders to use in this program</param>
+        /// <param name="files"></param>
         /// <returns>The linked program, or null if initialization failed</returns>
-        public static Program FromShaders(params Shader[] shaders) => FromShaders((IEnumerable<Shader>) shaders);
+        public static Program FromFiles(params string[] files) => FromFiles((IEnumerable<string>) files);
 
         /// <summary>
-        /// Create a program from compiled shaders
+        /// Create and link a program from glsl source files. Shader types must be inferrable from file extensions.
+        /// <para></para>
+        /// See <see cref="Shader.FromFile(string,ShaderType)"/> for file extension details
         /// </summary>
-        /// <param name="shaders">The shaders to use in this program</param>
+        /// <param name="files"></param>
         /// <returns>The linked program, or null if initialization failed</returns>
-        public static Program FromShaders(IEnumerable<Shader> shaders)
+        public static Program FromFiles(IEnumerable<string> files)
         {
-            var shaderList = shaders.ToList(); // prevent multiple enumeration
-            var shaderNames = shaderList.Select(s => s.Name);
-            string name = $"[{string.Join(", ", shaderNames)}]";
-            return FromShaders(name, shaderList);
-        }
-
-        /// <summary>
-        /// Create shaders from glsl source files, and create a program using them.
-        /// Shader types must be inferrable from file extensions.
-        /// </summary>
-        /// <param name="paths">The glsl source files</param>
-        /// <returns>The linked program, or null if initialization faileds</returns>
-        public static Program FromFiles(params string[] paths)
-        {
-            if (paths == null)
+            if (files == null)
             {
-                Logger.Warn("Cannot create a program from no shaders.");
+                Logger.Warn("Cannot create a program from no shaders");
                 return null;
             }
 
-            var shaders = paths.Select(path => Shader.FromFile(path)).ToList();
+            var shaders = files.Select(Shader.FromFile).ToList();
 
             var program = FromShaders(shaders);
 
             foreach (var shader in shaders)
+            {
                 shader?.Dispose();
+            }
 
             return program;
         }

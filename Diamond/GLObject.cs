@@ -6,10 +6,7 @@ namespace Diamond
 {
     public abstract class GLObject : IDisposable
     {
-        /// <summary>
-        /// The logger for GLObject-related info
-        /// </summary>
-        protected internal static Logger Logger = LogManager.GetLogger(nameof(GLObject));
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// The OpenGL object name

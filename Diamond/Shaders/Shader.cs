@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using NLog;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Shaders
@@ -9,6 +10,8 @@ namespace Diamond.Shaders
     /// </summary>
     public sealed class Shader : GLObject
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         #region Constructor, Delete()
 
         /// <summary>

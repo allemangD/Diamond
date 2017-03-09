@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Diamond.Shaders;
@@ -29,7 +30,7 @@ namespace hexworld
         {
             base.OnUnload(e);
 
-            _pgm.Dispose();
+            _pgm?.Dispose();
         }
 
         /// <inheritdoc />
@@ -38,6 +39,9 @@ namespace hexworld
             base.OnLoad(e);
 
             _pgm = Program.FromFiles("res/obj.fs.glsl", "res/obj.vs.glsl");
+
+            Program.Current = _pgm;
+            Program.Current = null;
         }
     }
 }

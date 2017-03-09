@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NLog;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Diamond.Shaders
@@ -11,6 +12,8 @@ namespace Diamond.Shaders
     /// </summary>
     public class Program : GLObject
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         #region Static
 
         private static Program _current;
@@ -23,13 +26,13 @@ namespace Diamond.Shaders
             get => _current;
             set
             {
-                if (!value?.Linked ?? false)
+                if (value != null && !value.Linked)
                 {
-                    Logger.Error("Cannot use program {0}", value);
+                    Logger.Error("Cannot use {0} because it is not linked", value);
                     value = null;
                 }
 
-                Logger.Debug("Using program {0}", value);
+                Logger.Debug("Using {0}", (object) value ?? "default program");
                 GL.UseProgram((_current = value)?.Id ?? 0);
             }
         }

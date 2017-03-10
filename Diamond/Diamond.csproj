@@ -92,6 +92,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <PostBuildEvent>cd $(SolutionDir)
+rmdir /s /q docs\html
 doxygen doxyconfig.txt</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -89,6 +89,7 @@ namespace Diamond.Util
             return arr;
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             if (Length == 0)

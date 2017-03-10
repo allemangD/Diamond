@@ -12,7 +12,7 @@ namespace Diamond.Shaders
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        #region Constructor, Delete()
+        #region ctor, Delete()
 
         /// <summary>
         /// Create a shader object wrapper

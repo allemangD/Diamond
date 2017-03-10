@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using Diamond.Shaders;
-using Diamond.Util;
-using Newtonsoft.Json.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+using Diamond;
+using Buffer = Diamond.Buffer;
 
 namespace hexworld
 {
@@ -24,6 +21,7 @@ namespace hexworld
         }
 
         private Program _pgm;
+        private Buffer<float> _buf;
 
         /// <inheritdoc />
         protected override void OnUnload(EventArgs e)
@@ -41,7 +39,25 @@ namespace hexworld
             _pgm = Program.FromFiles("res/obj.fs.glsl", "res/obj.vs.glsl");
 
             Program.Current = _pgm;
-            Program.Current = null;
+
+            _buf = Buffer.FromData(new float[]
+            {
+                -.8f, -.8f,
+                +.8f, -.8f,
+                +.0f, +.8f
+            });
+        }
+
+        /// <inheritdoc />
+        protected override void OnRenderFrame(FrameEventArgs e)
+        {
+            base.OnRenderFrame(e);
+
+            GL.Viewport(ClientRectangle);
+
+            GL.Clear(ClearBufferMask.ColorBufferBit);
+
+            SwapBuffers();
         }
     }
 }

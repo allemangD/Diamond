@@ -4,6 +4,9 @@ using OpenTK.Graphics;
 
 namespace Diamond
 {
+    /// <summary>
+    /// A wrapper class for any OpenGL object
+    /// </summary>
     public abstract class GLObject : IDisposable
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();

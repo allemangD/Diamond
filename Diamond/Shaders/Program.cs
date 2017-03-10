@@ -10,7 +10,7 @@ namespace Diamond.Shaders
     /// <summary>
     /// Wrap and OpenGL program object
     /// </summary>
-    public class Program : GLObject
+    public sealed class Program : GLObject
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -19,31 +19,36 @@ namespace Diamond.Shaders
         private static Program _current;
 
         /// <summary>
-        /// The currently active program
+        /// The currently active program, or null if the default program is active.
         /// </summary>
         public static Program Current
         {
             get => _current;
-            set
-            {
-                if (value != null && !value.Linked)
-                {
-                    Logger.Error("Cannot use {0} because it is not linked", value);
-                    value = null;
-                }
+            set => Use(value);
+        }
 
-                Logger.Debug("Using {0}", (object) value ?? "default program");
-                GL.UseProgram((_current = value)?.Id ?? 0);
+        /// <summary>
+        /// Use this program. If program is null, use the default program.
+        /// </summary>
+        public static void Use(Program program)
+        {
+            if (program != null && !program.Linked)
+            {
+                Logger.Error("Cannot use {0} because it is not linked", program);
+                program = null;
             }
+
+            GL.UseProgram(program?.Id ?? 0);
+            Logger.Debug("Using {0}", (object) program ?? "default program");
+
+            _current = program;
         }
 
         #endregion
 
-        #region Constructor, Delete()
+        #region ctor, Delete()
 
-        /// <summary>
-        /// Create a program object wrapper
-        /// </summary>
+        /// <inheritdoc />
         private Program()
             : base(GL.CreateProgram())
         {
@@ -64,12 +69,12 @@ namespace Diamond.Shaders
         #region Queries
 
         /// <summary>
-        /// The number of active uniforms
+        /// Gets the number of active uniforms
         /// </summary>
         public int ActiveUniforms => Get(GetProgramParameterName.ActiveUniforms);
 
         /// <summary>
-        /// The number of active attributes
+        /// Gets the number of active attributes
         /// </summary>
         public int ActiveAttributes => Get(GetProgramParameterName.ActiveAttributes);
 
@@ -78,7 +83,7 @@ namespace Diamond.Shaders
         #region Stored
 
         /// <summary>
-        /// The InfoLog for this program
+        /// The InfoLog for this program since it was last linked
         /// </summary>
         public string InfoLog { get; private set; }
 
@@ -94,7 +99,7 @@ namespace Diamond.Shaders
         #region Methods
 
         /// <summary>
-        /// Get a property of this program
+        /// Get a property of this program. invokes glGetProgram and returns an int result.
         /// </summary>
         /// <param name="param">The program property to get</param>
         /// <returns>The int value of the program property</returns>
@@ -105,7 +110,8 @@ namespace Diamond.Shaders
         }
 
         /// <summary>
-        /// Try to link this program
+        /// Try to link this program. If linking fails, the InfoLog is updated, and attribute and uniform caches are reset.
+        /// If linking is successful, attribute and uniform caches are generated
         /// </summary>
         public void Link()
         {
@@ -148,11 +154,9 @@ namespace Diamond.Shaders
         }
 
         /// <summary>
-        /// Use this program
-        /// <para></para>
-        /// Equivalent to <code>Program.Current = value</code>
+        /// Use this program. Equivalent to Program.Use(this);
         /// </summary>
-        public void Use() => Current = this;
+        public void Use() => Use(this);
 
         #region Attribute Locations
 
@@ -163,18 +167,19 @@ namespace Diamond.Shaders
         /// Check if this program has an active attribute
         /// </summary>
         /// <param name="name">The attribute name</param>
-        /// <returns>Whether the progrma has an active attribute</returns>
+        /// <returns>Whether the program has an active attribute</returns>
         public bool HasAttribute(string name) => _attributes.ContainsKey(name);
 
         /// <summary>
         /// Check if this program has an active uniform
         /// </summary>
         /// <param name="name">The uniform name</param>
-        /// <returns>Whether the progrma has an active uniform</returns>
+        /// <returns>Whether the program has an active uniform</returns>
         public bool HasUniform(string name) => _uniforms.ContainsKey(name);
 
         /// <summary>
-        /// Get the location of an attribute by name
+        /// Get the location of an attribute by name. Throws InvalidOperationException if the attribute
+        /// is not found. This can be checked with HasAttribute
         /// </summary>
         /// <param name="name">The attribute name</param>
         /// <returns>The location of the attribute</returns>
@@ -186,7 +191,8 @@ namespace Diamond.Shaders
         }
 
         /// <summary>
-        /// Get the location of an uniform by name
+        /// Get the location of an uniform by name. Throws InvalidOperationException if the uniform
+        /// is not found. This can be checked with HasUniform
         /// </summary>
         /// <param name="name">The uniform name</param>
         /// <returns>The location of the uniform</returns>
@@ -199,11 +205,21 @@ namespace Diamond.Shaders
         #endregion
 
         /// <summary>
-        /// Attach a shader to this program
+        /// Attach a shader to this program. If shader is null, does nothing. If shader is not compiled
+        /// it is still attached but program link will likely fail.
         /// </summary>
         /// <param name="shader">The shader to attach</param>
         public void Attach(Shader shader)
         {
+            if (shader == null)
+            {
+                Logger.Error("Cannot attach null shader to {0}", this);
+                return;
+            }
+
+            if (!shader.Compiled)
+                Logger.Warn("{0} is not compiled. Program link will likely fail.", shader);
+
             Logger.Debug("Attaching {0} to {1}", shader, this);
             GL.AttachShader(Id, shader.Id);
         }
@@ -217,14 +233,16 @@ namespace Diamond.Shaders
         #region Factory Methods
 
         /// <summary>
-        /// Create and link a program from precompiled shaders
+        /// Create and link a program from precompiled shaders. If any shader is null or uncompiled it is still
+        /// attached, although program link will likely fail. 
         /// </summary>
         /// <param name="shaders">The shaders used in this program</param>
         /// <returns>A linked program, or null if initialization failed</returns>
         public static Program FromShaders(params Shader[] shaders) => FromShaders((IEnumerable<Shader>) shaders);
 
         /// <summary>
-        /// Create and link a program from precompiled shaders
+        /// Create and link a program from precompiled shaders. If any shader is null or uncompiled it is still
+        /// attached, although program link will likely fail. 
         /// </summary>
         /// <param name="shaders">The shaders used in this program</param>
         /// <returns>A linked program, or null if initialization failed</returns>
@@ -239,15 +257,7 @@ namespace Diamond.Shaders
             var program = new Program();
 
             foreach (var shader in shaders)
-            {
-                if (shader == null)
-                {
-                    Logger.Error("One or more shaders is null - cannot create program");
-                    program.Dispose();
-                    return null;
-                }
                 program.Attach(shader);
-            }
 
             program.Link();
 

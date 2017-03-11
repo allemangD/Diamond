@@ -33,44 +33,42 @@ namespace hexworld
         {
             base.OnLoad(e);
 
-            var vs = Shader.FromFile("res/direct.vs.glsl");
-            var red = Shader.FromFile("res/red.fs.glsl");
-            var white = Shader.FromFile("res/white.fs.glsl");
-            _whitePgm = Program.FromShaders(vs, red);
-            _redPgm = Program.FromShaders(vs, white);
-
-            _triVbo = Buffer.FromData(new float[]
+            using (var vs = Shader.FromFile("res/direct.vs.glsl"))
+            using (var red = Shader.FromFile("res/red.fs.glsl"))
+            using (var white = Shader.FromFile("res/white.fs.glsl"))
             {
-                -.8f, -.8f,
-                +.8f, -.8f,
-                +.0f, +.8f
-            });
-            _triVao = GL.GenVertexArray();
-            GL.BindVertexArray(_triVao);
-            Program.Current = _redPgm;
-            Buffer.ArrayBuffer = _triVbo;
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
+                _whitePgm = Program.FromShaders(vs, red);
+                _redPgm = Program.FromShaders(vs, white);
 
-            _recVbo = Buffer.FromData(new float[]
-            {
-                -.9f, -.5f,
-                +.9f, -.5f,
-                +.9f, +.5f,
-                +.9f, +.5f,
-                -.9f, +.5f,
-                -.9f, -.5f,
-            });
-            _recVao = GL.GenVertexArray();
-            GL.BindVertexArray(_recVao);
-            Program.Current = _whitePgm;
-            Buffer.ArrayBuffer = _recVbo;
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
+                _triVbo = Buffer.FromData(new float[]
+                {
+                    -.8f, -.8f,
+                    +.8f, -.8f,
+                    +.0f, +.8f
+                });
+                _triVao = GL.GenVertexArray();
+                GL.BindVertexArray(_triVao);
+                Program.Current = _redPgm;
+                Buffer.ArrayBuffer = _triVbo;
+                GL.EnableVertexAttribArray(0);
+                GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
 
-            vs?.Dispose();
-            red?.Dispose();
-            white?.Dispose();
+                _recVbo = Buffer.FromData(new float[]
+                {
+                    -.9f, -.5f,
+                    +.9f, -.5f,
+                    +.9f, +.5f,
+                    +.9f, +.5f,
+                    -.9f, +.5f,
+                    -.9f, -.5f,
+                });
+                _recVao = GL.GenVertexArray();
+                GL.BindVertexArray(_recVao);
+                Program.Current = _whitePgm;
+                Buffer.ArrayBuffer = _recVbo;
+                GL.EnableVertexAttribArray(0);
+                GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
+            }
         }
 
         /// <inheritdoc />

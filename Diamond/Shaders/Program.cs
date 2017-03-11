@@ -39,7 +39,7 @@ namespace Diamond.Shaders
             }
 
             GL.UseProgram(program?.Id ?? 0);
-            Logger.Debug("Using {0}", (object) program ?? "default program");
+            Logger.Trace("Using {0}", (object) program ?? "default program");
 
             _current = program;
         }

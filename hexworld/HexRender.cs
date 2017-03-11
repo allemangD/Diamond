@@ -20,32 +20,69 @@ namespace hexworld
             Y = (DisplayDevice.Default.Height - Height) / 2;
         }
 
-        private Program _pgm;
-        private Buffer<float> _buf;
+        private int _triVao;
+        private Buffer<float> _triVbo;
+        private Program _whitePgm;
 
-        /// <inheritdoc />
-        protected override void OnUnload(EventArgs e)
-        {
-            base.OnUnload(e);
-
-            _pgm?.Dispose();
-        }
+        private int _recVao;
+        private Buffer<float> _recVbo;
+        private Program _redPgm;
 
         /// <inheritdoc />
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 
-            _pgm = Program.FromFiles("res/obj.fs.glsl", "res/obj.vs.glsl");
+            var vs = Shader.FromFile("res/direct.vs.glsl");
+            var red = Shader.FromFile("res/red.fs.glsl");
+            var white = Shader.FromFile("res/white.fs.glsl");
+            _whitePgm = Program.FromShaders(vs, red);
+            _redPgm = Program.FromShaders(vs, white);
 
-            Program.Current = _pgm;
-
-            _buf = Buffer.FromData(new float[]
+            _triVbo = Buffer.FromData(new float[]
             {
                 -.8f, -.8f,
                 +.8f, -.8f,
                 +.0f, +.8f
             });
+            _triVao = GL.GenVertexArray();
+            GL.BindVertexArray(_triVao);
+            Program.Current = _redPgm;
+            Buffer.ArrayBuffer = _triVbo;
+            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
+
+            _recVbo = Buffer.FromData(new float[]
+            {
+                -.9f, -.5f,
+                +.9f, -.5f,
+                +.9f, +.5f,
+                +.9f, +.5f,
+                -.9f, +.5f,
+                -.9f, -.5f,
+            });
+            _recVao = GL.GenVertexArray();
+            GL.BindVertexArray(_recVao);
+            Program.Current = _whitePgm;
+            Buffer.ArrayBuffer = _recVbo;
+            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
+
+            vs?.Dispose();
+            red?.Dispose();
+            white?.Dispose();
+        }
+
+        /// <inheritdoc />
+        protected override void OnUnload(EventArgs e)
+        {
+            base.OnUnload(e);
+
+            _triVbo?.Dispose();
+            _recVbo?.Dispose();
+
+            _whitePgm?.Dispose();
+            _redPgm?.Dispose();
         }
 
         /// <inheritdoc />
@@ -56,6 +93,14 @@ namespace hexworld
             GL.Viewport(ClientRectangle);
 
             GL.Clear(ClearBufferMask.ColorBufferBit);
+
+            Program.Current = _redPgm;
+            GL.BindVertexArray(_triVao);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
+
+            Program.Current = _whitePgm;
+            GL.BindVertexArray(_recVao);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
 
             SwapBuffers();
         }

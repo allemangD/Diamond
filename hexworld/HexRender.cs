@@ -33,12 +33,14 @@ namespace hexworld
             Y = (DisplayDevice.Default.Height - Height) / 2;
         }
 
+        private Buffer<Vert> _vbo;
+
         private VertexArray _triVao;
-        private Buffer<Vert> _triVbo;
+        private Buffer<uint> _triIbo;
         private Program _whitePgm;
 
         private VertexArray _recVao;
-        private Buffer<Vert> _recVbo;
+        private Buffer<uint> _recIbo;
         private Program _redPgm;
 
         /// <inheritdoc />
@@ -54,18 +56,11 @@ namespace hexworld
                 _redPgm = Program.FromShaders(vs, white);
             }
 
-            _triVbo = Buffer.FromData(new[]
+            _vbo = Buffer.FromData(new[]
             {
                 new Vert(-.8f, -.8f),
                 new Vert(+.8f, -.8f),
-                new Vert(+.0f, +.8f)
-            });
-            Program.Current = _redPgm;
-            _triVao = VertexArray.Create();
-            _triVao.Attach(_triVbo);
-
-            _recVbo = Buffer.FromData(new[]
-            {
+                new Vert(+.0f, +.8f),
                 new Vert(-.9f, -.5f),
                 new Vert(+.9f, -.5f),
                 new Vert(+.9f, +.5f),
@@ -73,18 +68,32 @@ namespace hexworld
                 new Vert(-.9f, +.5f),
                 new Vert(-.9f, -.5f)
             });
+
+            _triIbo = Buffer.FromData(new uint[]
+            {
+                0, 1, 2
+            });
+
+            Program.Current = _redPgm;
+            _triVao = VertexArray.Create();
+            _triVao.Attach(_vbo);
+            _triVao.ElementArrayBuffer = _triIbo;
+
+            _recIbo = Buffer.FromData(new uint[]
+            {
+                3, 4, 5, 6, 7, 8
+            });
+
             Program.Current = _whitePgm;
             _recVao = VertexArray.Create();
-            _recVao.Attach(_recVbo);
+            _recVao.Attach(_vbo);
+            _recVao.ElementArrayBuffer = _recIbo;
         }
 
         /// <inheritdoc />
         protected override void OnUnload(EventArgs e)
         {
             base.OnUnload(e);
-
-            _triVbo?.Dispose();
-            _recVbo?.Dispose();
 
             _whitePgm?.Dispose();
             _redPgm?.Dispose();
@@ -101,11 +110,11 @@ namespace hexworld
 
             Program.Current = _redPgm;
             VertexArray.Current = _triVao;
-            GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
+            GL.DrawElements(PrimitiveType.Triangles, 3, DrawElementsType.UnsignedInt, 0);
 
             Program.Current = _whitePgm;
             VertexArray.Current = _recVao;
-            GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
+            GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
 
             SwapBuffers();
         }

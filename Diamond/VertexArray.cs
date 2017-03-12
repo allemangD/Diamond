@@ -82,6 +82,7 @@ namespace Diamond
             get => _elementArrayBuffer;
             set
             {
+                Logger.Debug("Using {0} as ElementArrayBuffer for {1}", (object)value ?? "default buffer", this);
                 Current = this;
                 Buffer.ElementArrayBuffer = _elementArrayBuffer = value;
             }
@@ -112,18 +113,19 @@ namespace Diamond
                 return;
             }
 
+            Logger.Debug("Attaching {0} to {1}", buffer, this);
+
             Current = this;
             Buffer.ArrayBuffer = buffer;
 
             var stride = Marshal.SizeOf<T>();
             foreach (var field in typeof(T).GetFields())
             {
-                Logger.Debug("Analyzing {0}", field.Name);
                 var offset = Marshal.OffsetOf<T>(field.Name);
                 foreach (var vai in field.GetCustomAttributes<VertexAttribAttribute>(false))
                 {
-                    Logger.Debug(
-                        $"Enabling {vai.Attribute}, {vai.Size}, {vai.Type}, {vai.Normalized}, {stride}, {offset}");
+                    Logger.Debug($"Enabling attribute (id:{vai.Attribute}, size:{vai.Size}, " +
+                                 $"type:{vai.Type}, norm:{vai.Normalized}, stride:{stride}, offset:{offset})");
 
                     GL.EnableVertexAttribArray(vai.Attribute);
                     GL.VertexAttribPointer(vai.Attribute, vai.Size, vai.Type, vai.Normalized, stride, offset);
@@ -135,6 +137,10 @@ namespace Diamond
         /// Bind this vao
         /// </summary>
         public void Bind() => Bind(this);
+
+        /// <inheritdoc />
+        public override string ToString() => 
+            $"'Vertex Array {Id}'";
 
         #endregion
 

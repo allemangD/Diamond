@@ -28,8 +28,9 @@ namespace Diamond.Shaders
         }
 
         /// <summary>
-        /// Use this program. If program is null, use the default program.
+        /// Use a program.
         /// </summary>
+        /// <param name="program">The program to use, or null to use the default program</param>
         public static void Use(Program program)
         {
             if (program != null && !program.Linked)
@@ -158,7 +159,7 @@ namespace Diamond.Shaders
         /// </summary>
         public void Use() => Use(this);
 
-        #region Attribute Locations
+        #region Locations
 
         private readonly Dictionary<string, int> _attributes = new Dictionary<string, int>();
         private readonly Dictionary<string, int> _uniforms = new Dictionary<string, int>();
@@ -257,7 +258,9 @@ namespace Diamond.Shaders
             var program = new Program();
 
             foreach (var shader in shaders)
+            {
                 program.Attach(shader);
+            }
 
             program.Link();
 

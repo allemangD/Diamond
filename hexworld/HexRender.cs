@@ -5,10 +5,23 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using Diamond;
+using Diamond.Attributes;
 using Buffer = Diamond.Buffer;
 
 namespace hexworld
 {
+    [VertexData()]
+    public struct Vert
+    {
+        [VertexAttrib(0, 2)]
+        public Vector2 Position;
+
+        public Vert(float x, float y)
+        {
+            Position = new Vector2(x, y);
+        }
+    }
+
     public class HexRender : GameWindow
     {
         public HexRender(int width, int height)
@@ -20,12 +33,12 @@ namespace hexworld
             Y = (DisplayDevice.Default.Height - Height) / 2;
         }
 
-        private int _triVao;
-        private Buffer<float> _triVbo;
+        private VertexArray _triVao;
+        private Buffer<Vert> _triVbo;
         private Program _whitePgm;
 
-        private int _recVao;
-        private Buffer<float> _recVbo;
+        private VertexArray _recVao;
+        private Buffer<Vert> _recVbo;
         private Program _redPgm;
 
         /// <inheritdoc />
@@ -39,36 +52,30 @@ namespace hexworld
             {
                 _whitePgm = Program.FromShaders(vs, red);
                 _redPgm = Program.FromShaders(vs, white);
-
-                _triVbo = Buffer.FromData(new float[]
-                {
-                    -.8f, -.8f,
-                    +.8f, -.8f,
-                    +.0f, +.8f
-                });
-                _triVao = GL.GenVertexArray();
-                GL.BindVertexArray(_triVao);
-                Program.Current = _redPgm;
-                Buffer.ArrayBuffer = _triVbo;
-                GL.EnableVertexAttribArray(0);
-                GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
-
-                _recVbo = Buffer.FromData(new float[]
-                {
-                    -.9f, -.5f,
-                    +.9f, -.5f,
-                    +.9f, +.5f,
-                    +.9f, +.5f,
-                    -.9f, +.5f,
-                    -.9f, -.5f,
-                });
-                _recVao = GL.GenVertexArray();
-                GL.BindVertexArray(_recVao);
-                Program.Current = _whitePgm;
-                Buffer.ArrayBuffer = _recVbo;
-                GL.EnableVertexAttribArray(0);
-                GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 0, 0);
             }
+
+            _triVbo = Buffer.FromData(new[]
+            {
+                new Vert(-.8f, -.8f),
+                new Vert(+.8f, -.8f),
+                new Vert(+.0f, +.8f)
+            });
+            Program.Current = _redPgm;
+            _triVao = VertexArray.Create();
+            _triVao.Attach(_triVbo);
+
+            _recVbo = Buffer.FromData(new[]
+            {
+                new Vert(-.9f, -.5f),
+                new Vert(+.9f, -.5f),
+                new Vert(+.9f, +.5f),
+                new Vert(+.9f, +.5f),
+                new Vert(-.9f, +.5f),
+                new Vert(-.9f, -.5f)
+            });
+            Program.Current = _whitePgm;
+            _recVao = VertexArray.Create();
+            _recVao.Attach(_recVbo);
         }
 
         /// <inheritdoc />
@@ -93,11 +100,11 @@ namespace hexworld
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
             Program.Current = _redPgm;
-            GL.BindVertexArray(_triVao);
+            VertexArray.Current = _triVao;
             GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
 
             Program.Current = _whitePgm;
-            GL.BindVertexArray(_recVao);
+            VertexArray.Current = _recVao;
             GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
 
             SwapBuffers();

@@ -95,6 +95,14 @@ namespace hexworld
         {
             base.OnUnload(e);
 
+            _triVao?.Dispose();
+            _recVao?.Dispose();
+
+            _triIbo?.Dispose();
+            _recIbo?.Dispose();
+
+            _vbo?.Dispose();
+
             _whitePgm?.Dispose();
             _redPgm?.Dispose();
         }

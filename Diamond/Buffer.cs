@@ -157,10 +157,20 @@ namespace Diamond
         /// Upload data to this buffer. Deletes the existing data store and creates a new one
         /// from the marshalled size of T.
         /// </summary>
+        /// <remarks>
+        /// BufferUsageHint should be based off of what the user will be doing with the buffer.
+        /// 
+        /// DRAW: The user will be writing data to the buffer, but the user will not read it.
+        /// READ: The user will not be writing data, but the user will be reading it back.
+        /// COPY: The user will be neither writing nor reading the data.
+        /// 
+        /// STATIC: The user will set the data once.
+        /// DYNAMIC: The user will set the data occasionally.
+        /// STREAM: The user will be changing the data after every use.Or almost every use.
+        /// </remarks>
         /// <typeparam name="T">Data element type, used with Marshal.SizeOf to calculate size of data store</typeparam>
         /// <param name="data">Values to upload</param>
         /// <param name="usage">Usage hint for for this data.</param>
-        // todo: add usage hint documentation
         public void Upload<T>(T[] data, BufferUsageHint usage = BufferUsageHint.StaticDraw) where T : struct
         {
             Logger.Debug("Updating {0} data (replacing store)", this);
@@ -190,11 +200,21 @@ namespace Diamond
         /// <summary>
         /// Creates a buffer, initialized with an array
         /// </summary>
+        /// <remarks>
+        /// BufferUsageHint should be based off of what the user will be doing with the buffer.
+        /// 
+        /// DRAW: The user will be writing data to the buffer, but the user will not read it.
+        /// READ: The user will not be writing data, but the user will be reading it back.
+        /// COPY: The user will be neither writing nor reading the data.
+        /// 
+        /// STATIC: The user will set the data once.
+        /// DYNAMIC: The user will set the data occasionally.
+        /// STREAM: The user will be changing the data after every use.Or almost every use.
+        /// </remarks>
         /// <typeparam name="T">Data element type.</typeparam>
         /// <param name="data">Data used to initialize the buffer</param>
         /// <param name="usage">The usage hint for this buffer</param>
         /// <returns>The initialized buffer, or null if initialization failed</returns>
-        // todo: add usage hint documentation
         public static Buffer<T> FromData<T>(T[] data, BufferUsageHint usage = BufferUsageHint.StaticDraw)
             where T : struct
         {
@@ -212,7 +232,6 @@ namespace Diamond
     /// Generic overload for Buffer. Caches properties like data, usage, and size.
     /// </summary>
     /// <typeparam name="T">Data type used for all operations</typeparam>
-    // todo this needs to be made as complete as the non-generic version
     public sealed class Buffer<T> : Buffer where T : struct
     {
         /// <summary>
@@ -233,9 +252,19 @@ namespace Diamond
         /// <summary>
         /// Upload data to this buffer. Deletes the existing data store and creates a new one.
         /// </summary>
+        /// <remarks>
+        /// BufferUsageHint should be based off of what the user will be doing with the buffer.
+        /// 
+        /// DRAW: The user will be writing data to the buffer, but the user will not read it.
+        /// READ: The user will not be writing data, but the user will be reading it back.
+        /// COPY: The user will be neither writing nor reading the data.
+        /// 
+        /// STATIC: The user will set the data once.
+        /// DYNAMIC: The user will set the data occasionally.
+        /// STREAM: The user will be changing the data after every use.Or almost every use.
+        /// </remarks>
         /// <param name="data">Values to upload</param>
         /// <param name="usage">Usage hint for for this data.</param>
-        // todo: add usage hint documentation
         public void Upload(T[] data, BufferUsageHint usage = BufferUsageHint.StaticDraw)
         {
             base.Upload<T>(data, usage);

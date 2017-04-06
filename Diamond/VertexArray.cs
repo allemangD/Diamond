@@ -129,6 +129,7 @@ namespace Diamond
 
                     GL.EnableVertexAttribArray(vai.Attribute);
                     GL.VertexAttribPointer(vai.Attribute, vai.Size, vai.Type, vai.Normalized, stride, offset);
+                    GL.VertexAttribDivisor(vai.Attribute, vda.Divisor);
                 }
             }
         }

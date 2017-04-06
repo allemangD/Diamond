@@ -13,12 +13,22 @@ namespace hexworld
     [VertexData()]
     public struct Vert
     {
-        [VertexAttrib(0, 2)]
-        public Vector2 Position;
+        [VertexAttrib(0, 3)] public Vector3 Position;
 
-        public Vert(float x, float y)
+        public Vert(float x, float y, float z = 0)
         {
-            Position = new Vector2(x, y);
+            Position = new Vector3(x, y, z);
+        }
+    }
+
+    [VertexData(1)]
+    public struct Entity
+    {
+        [VertexAttrib(1, 3)] public Vector3 Position;
+
+        public Entity(float x, float y, float z = 0)
+        {
+            Position = new Vector3(x, y, z);
         }
     }
 
@@ -33,15 +43,25 @@ namespace hexworld
             Y = (DisplayDevice.Default.Height - Height) / 2;
         }
 
-        private Buffer<Vert> _vbo;
+        private Buffer<Vert> _sqrBuff;
+        private Buffer<uint> _sqrElem;
+        private VertexArray _sqrAo;
 
-        private VertexArray _triVao;
-        private Buffer<uint> _triIbo;
-        private Program _whitePgm;
+        private Buffer<Entity> _entBuff;
 
-        private VertexArray _recVao;
-        private Buffer<uint> _recIbo;
-        private Program _redPgm;
+        private Program _pgm;
+
+        /// <inheritdoc />
+        protected override void OnUnload(EventArgs e)
+        {
+            base.OnUnload(e);
+
+            _sqrAo?.Dispose();
+            _sqrBuff?.Dispose();
+            _sqrElem?.Dispose();
+
+            _pgm?.Dispose();
+        }
 
         /// <inheritdoc />
         protected override void OnLoad(EventArgs e)
@@ -49,62 +69,37 @@ namespace hexworld
             base.OnLoad(e);
 
             using (var vs = Shader.FromFile("res/direct.vs.glsl"))
-            using (var red = Shader.FromFile("res/red.fs.glsl"))
             using (var white = Shader.FromFile("res/white.fs.glsl"))
             {
-                _whitePgm = Program.FromShaders(vs, red);
-                _redPgm = Program.FromShaders(vs, white);
+                _pgm = Program.FromShaders(vs, white);
             }
 
-            _vbo = Buffer.FromData(new[]
+            _sqrBuff = Buffer.FromData(new[]
             {
-                new Vert(-.8f, -.8f),
-                new Vert(+.8f, -.8f),
-                new Vert(+.0f, +.8f),
-                new Vert(-.9f, -.5f),
-                new Vert(+.9f, -.5f),
-                new Vert(+.9f, +.5f),
-                new Vert(+.9f, +.5f),
-                new Vert(-.9f, +.5f),
-                new Vert(-.9f, -.5f)
+                new Vert(-.5f, -.5f),
+                new Vert(+.5f, -.5f),
+                new Vert(+.5f, +.5f),
+                new Vert(-.5f, +.5f),
             });
 
-            _triIbo = Buffer.FromData(new uint[]
+            _sqrElem = Buffer.FromData(new uint[]
             {
-                0, 1, 2
+                0, 1, 2, 2, 3, 0
             });
 
-            Program.Current = _redPgm;
-            _triVao = VertexArray.Create();
-            _triVao.Attach(_vbo);
-            _triVao.ElementArrayBuffer = _triIbo;
-
-            _recIbo = Buffer.FromData(new uint[]
+            _entBuff = Buffer.FromData(new[]
             {
-                3, 4, 5, 6, 7, 8
+                new Entity(-1, -1),
+                new Entity(-1, 1),
+                new Entity(1, -1),
+                new Entity(1, 1),
             });
 
-            Program.Current = _whitePgm;
-            _recVao = VertexArray.Create();
-            _recVao.Attach(_vbo);
-            _recVao.ElementArrayBuffer = _recIbo;
-        }
-
-        /// <inheritdoc />
-        protected override void OnUnload(EventArgs e)
-        {
-            base.OnUnload(e);
-
-            _triVao?.Dispose();
-            _recVao?.Dispose();
-
-            _triIbo?.Dispose();
-            _recIbo?.Dispose();
-
-            _vbo?.Dispose();
-
-            _whitePgm?.Dispose();
-            _redPgm?.Dispose();
+            Program.Current = _pgm;
+            _sqrAo = VertexArray.Create();
+            _sqrAo.Attach(_sqrBuff);
+            _sqrAo.Attach(_entBuff);
+            _sqrAo.ElementArrayBuffer = _sqrElem;
         }
 
         /// <inheritdoc />
@@ -116,13 +111,15 @@ namespace hexworld
 
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
-            Program.Current = _redPgm;
-            VertexArray.Current = _triVao;
-            GL.DrawElements(PrimitiveType.Triangles, 3, DrawElementsType.UnsignedInt, 0);
+            var proj = Matrix4.CreateOrthographic(6f, 6f * Height / Width, -10f, 10f);
+            var view = Matrix4.LookAt(Vector3.Zero, -Vector3.One, Vector3.UnitZ);
 
-            Program.Current = _whitePgm;
-            VertexArray.Current = _recVao;
-            GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
+            Program.Current = _pgm;
+            VertexArray.Current = _sqrAo;
+            GL.UniformMatrix4(0, false, ref proj);
+            GL.UniformMatrix4(1, false, ref view);
+            GL.DrawElementsInstanced(PrimitiveType.Triangles, _sqrElem.Size, DrawElementsType.UnsignedInt, IntPtr.Zero,
+                _entBuff.Size);
 
             SwapBuffers();
         }
